@@ -88,12 +88,23 @@ commit firewall
 set dhcp.@dnsmasq[0].cachesize='4096'
 set dhcp.@dnsmasq[0].min_cache_ttl='60'
 commit dhcp
+set irqbalance.irqbalance.enabled='1'
+commit irqbalance
 EOF
+
+    # Set CPU governor to schedutil and persist across reboots
+    if [ -w /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ] && grep -qw schedutil /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors 2>/dev/null; then
+        for gov in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
+            [ -w "$gov" ] && echo "schedutil" > "$gov"
+        done
+        grep -q "scaling_governor" /etc/rc.local || sed -i '/exit 0/i for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w "$g" ] && echo schedutil > "$g"; done' /etc/rc.local
+    fi
 
     # Enable BBR congestion control if supported by kernel
     if grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
         mkdir -p /etc/sysctl.d
         echo "net.ipv4.tcp_congestion_control=bbr" > /etc/sysctl.d/99-bbr.conf
+        sysctl -w net.ipv4.tcp_congestion_control=bbr >/dev/null 2>&1 || true
     fi
 
     # USB Mode

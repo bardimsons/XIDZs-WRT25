@@ -6,7 +6,7 @@ mixed-port: 7890
 tproxy-port: 7892
 ipv6: false
 mode: rule
-log-level: info
+log-level: warning
 allow-lan: true
 external-controller: 0.0.0.0:9090
 secret: "xidz"
@@ -82,6 +82,7 @@ proxy-providers:
       enable: true
       url: http://ping.xmbb.net/
       interval: 300
+      lazy: true
   SG:
     type: file
     path: "./proxy_provider/SG.yaml"
@@ -89,6 +90,7 @@ proxy-providers:
       enable: true
       url: http://ping.xmbb.net/
       interval: 300
+      lazy: true
   WK:
     type: file
     path: "./proxy_provider/WK.yaml"
@@ -96,13 +98,14 @@ proxy-providers:
       enable: true
       url: http://ping.xmbb.net/
       interval: 300
+      lazy: true
 
 proxy-groups:
   - name: VPN
     type: select
     icon: https://i.imgur.com/Mis5ANQ.png
-    interval : 30
-    url : http://ping.xmbb.net/
+    interval: 300
+    url: http://ping.xmbb.net/
     use:
       - ID
       - SG
@@ -113,7 +116,8 @@ proxy-groups:
     udp: true
     icon: https://i.imgur.com/ShK5Iad.png
     url: http://ping.xmbb.net/
-    interval: 30
+    interval: 300
+    lazy: true
     use:
       - SG
   - name: Ewallet
@@ -154,14 +158,16 @@ proxy-groups:
     type: url-test
     icon: https://i.imgur.com/Mis5ANQ.png
     url: http://ping.xmbb.net/
-    interval: 30
+    interval: 300
+    lazy: true
     use:
       - ID
   - name: Server SG
     type: url-test
     icon: https://i.imgur.com/Mis5ANQ.png
     url: http://ping.xmbb.net/
-    interval: 30
+    interval: 300
+    lazy: true
     use:
       - SG
 

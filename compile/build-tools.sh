@@ -639,7 +639,7 @@ run_makeimage() {
     log "INFO" "Starting ImageBuilder for: $target_profile [Tunnel: ${tunnel_option:-none}]"
     
     # Base system & LuCI
-    PACKAGES+=" dnsmasq-full libc block-mount zram-swap zoneinfo-core zoneinfo-asia bash screen uhttpd uhttpd-mod-ubus \
+    PACKAGES+=" dnsmasq-full libc block-mount zram-swap zoneinfo-core zoneinfo-asia bash screen uhttpd uhttpd-mod-ubus irqbalance \
     luci luci-ssl luci-base luci-compat luci-mod-admin-full luci-mod-network \
     luci-mod-system luci-mod-status luci-app-firewall luci-app-opkg openssh-sftp-server adb curl wget-ssl \
     httping htop jq tar unzip coreutils-base64 coreutils-sleep coreutils-stat coreutils-stty "
@@ -669,7 +669,7 @@ run_makeimage() {
     local QMODEM="ubus-at-daemon sms-tool_q ndisc6 quectel-CM-5G-M qmodem tom_modem sms-forwarder-next luci-app-qmodem-next"
     
     # File manager & PHP
-    local TINYFM="php8 php8-cli php8-fastcgi php8-fpm php8-mod-session php8-mod-ctype php8-mod-fileinfo \
+    local TINYFM="php8 php8-cli php8-fastcgi php8-mod-session php8-mod-ctype php8-mod-fileinfo \
     php8-mod-zip php8-mod-iconv php8-mod-mbstring luci-app-tinyfm"
     
     # Network monitoring & statistics

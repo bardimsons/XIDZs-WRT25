@@ -16,9 +16,10 @@ KERNEL_VERSION=$(uname -r | cut -d. -f1,2)
 function dual_general() {
   pin_on="${2}"
   pin_off="${3}"
+  [ -n "${pin_on:-}" ] && [ -n "${pin_off:-}" ] || return 1
   # initialize gpio
-  echo "${pin_on}" > "${GPIO}/export"
-  echo "${pin_off}" > "${GPIO}/export"
+  [ ! -d "${GPIO}/gpio${pin_on}" ] && echo "${pin_on}" > "${GPIO}/export"
+  [ ! -d "${GPIO}/gpio${pin_off}" ] && echo "${pin_off}" > "${GPIO}/export"
   echo out > "${GPIO}/gpio${pin_on}/direction"
   echo out > "${GPIO}/gpio${pin_off}/direction"
   case "${1}" in
@@ -42,7 +43,7 @@ function dual_general() {
 }
 
 function power() {
-  if [[ "$KERNEL_VERSION" == "6.6" || "$KERNEL_VERSION" == "6.12" ]]; then
+  if [[ "$KERNEL_VERSION" == "6.6" || "$KERNEL_VERSION" == "6.12" || "$KERNEL_VERSION" == "6.18" ]]; then
     pin_on="521"
     pin_off="517"
   elif [[ "$KERNEL_VERSION" == "5.15" || "$KERNEL_VERSION" == "6.1" ]]; then
@@ -53,7 +54,7 @@ function power() {
 }
 
 function lan() {
-  if [[ "$KERNEL_VERSION" == "6.6" || "$KERNEL_VERSION" == "6.12" ]]; then
+  if [[ "$KERNEL_VERSION" == "6.6" || "$KERNEL_VERSION" == "6.12" || "$KERNEL_VERSION" == "6.18" ]]; then
     pin_on="547"
     pin_off="548"
   elif [[ "$KERNEL_VERSION" == "5.15" || "$KERNEL_VERSION" == "6.1" ]]; then
@@ -66,7 +67,7 @@ function lan() {
 function usb() {
   pin_usb="505"
   # initialize gpio
-  echo "${pin_usb}" > "${GPIO}/export"
+  [ ! -d "${GPIO}/gpio${pin_usb}" ] && echo "${pin_usb}" > "${GPIO}/export"
   echo out > "${GPIO}/gpio${pin_usb}/direction"
   case "${1}" in
     "reset")
@@ -84,7 +85,7 @@ Usage:
   -lan    [on, off, warn, dis]
   -usb    [reset]
   
-Supported kernel versions: 5.15, 6.1, 6.6, 6.12
+Supported kernel versions: 5.15, 6.1, 6.6, 6.12, 6.18
 Current kernel version: $KERNEL_VERSION
 EOF
 }

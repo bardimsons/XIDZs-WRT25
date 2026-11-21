@@ -19,7 +19,7 @@ for q in /sys/class/net/"$INTERFACE"/queues/rx-*; do
     [ -d "$q" ] || continue
     if [ -w "$q/rps_cpus" ]; then
         cur=$(cat "$q/rps_cpus" 2>/dev/null)
-        [ -z "$cur" ] || [ "$cur" = "0" ] || [ "$cur" = "00" ] && echo "$mask" > "$q/rps_cpus" 2>/dev/null
+        case "$cur" in ""|0|00) echo "$mask" > "$q/rps_cpus" 2>/dev/null ;; esac
     fi
     if [ -w "$q/rps_flow_cnt" ]; then
         echo 4096 > "$q/rps_flow_cnt" 2>/dev/null
@@ -30,6 +30,6 @@ for q in /sys/class/net/"$INTERFACE"/queues/tx-*; do
     [ -d "$q" ] || continue
     if [ -w "$q/xps_cpus" ]; then
         cur=$(cat "$q/xps_cpus" 2>/dev/null)
-        [ -z "$cur" ] || [ "$cur" = "0" ] || [ "$cur" = "00" ] && echo "$mask" > "$q/xps_cpus" 2>/dev/null
+        case "$cur" in ""|0|00) echo "$mask" > "$q/xps_cpus" 2>/dev/null ;; esac
     fi
 done

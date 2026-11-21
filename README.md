@@ -28,16 +28,8 @@
 
 <h3 align="center">Devices Support</h3>
 <p align="center">
-  <img src="https://img.shields.io/badge/OrangePi-FF6600?style=for-the-badge&logo=raspberrypi&logoColor=white" alt="Orange Pi">
-  <img src="https://img.shields.io/badge/RaspberryPi-C51A4A?style=for-the-badge&logo=raspberrypi&logoColor=white" alt="Raspberry Pi">
-  <br>
-  <img src="https://img.shields.io/badge/NanoPi-00A859?style=for-the-badge&logo=raspberrypi&logoColor=white" alt="NanoPi">
-  <img src="https://img.shields.io/badge/Amlogic-1976D2?style=for-the-badge&logo=microchip&logoColor=white" alt="Amlogic">
-  <br>
-  <img src="https://img.shields.io/badge/Rockchip-E91E63?style=for-the-badge&logo=microchip&logoColor=white" alt="Rockchip">
-  <img src="https://img.shields.io/badge/Allwinner-FF9800?style=for-the-badge&logo=microchip&logoColor=white" alt="Allwinner">
-  <br>
-  <img src="https://img.shields.io/badge/X86-000000?style=for-the-badge&logo=windows&logoColor=white" alt="X86">
+  <img src="https://img.shields.io/badge/Amlogic_S905X-1976D2?style=for-the-badge&logo=microchip&logoColor=white" alt="Amlogic S905X">
+  <img src="https://img.shields.io/badge/HG680P-00A859?style=for-the-badge&logo=linux&logoColor=white" alt="HG680P">
 </p>
 
 ---

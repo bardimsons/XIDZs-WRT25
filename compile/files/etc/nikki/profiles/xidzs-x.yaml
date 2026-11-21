@@ -1,5 +1,5 @@
 mode: rule
-log-level: info
+log-level: warning
 ipv6: false
 allow-lan: true
 unified-delay: true

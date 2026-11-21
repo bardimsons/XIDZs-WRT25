@@ -38,6 +38,7 @@ declare -A CONFIG=(
 cleanup() {
     printf "\e[?25h"
     jobs -p 2>/dev/null | xargs -r kill 2>/dev/null || true
+    [ -n "${URL_CACHE_DIR:-}" ] && rm -rf "$URL_CACHE_DIR" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -178,19 +179,23 @@ ariadl() {
     return 1
 }
 
-declare -gA URL_CACHE=()
+URL_CACHE_DIR="${TMPDIR:-/tmp}/xidz-url-cache-$$"
 
-# Fetch URL with in-memory cache to avoid redundant API/index requests
+# Fetch URL with file-backed cache so subshells $(...) reuse responses
 fetch_url_cached() {
     local url="$1"
     local curl_opts=("${@:2}")
-    if [[ -v URL_CACHE["$url"] ]]; then
-        printf '%s' "${URL_CACHE[$url]}"
+    local cache_key cache_file
+    cache_key=$(printf '%s' "$url" | sha256sum | awk '{print $1}')
+    cache_file="${URL_CACHE_DIR}/${cache_key}"
+    if [[ -f "$cache_file" ]]; then
+        cat "$cache_file"
         return 0
     fi
+    mkdir -p "$URL_CACHE_DIR"
     local content
     content=$(curl -sL "${curl_opts[@]}" "$url" 2>/dev/null || true)
-    URL_CACHE["$url"]="$content"
+    printf '%s' "$content" > "$cache_file"
     printf '%s' "$content"
 }
 
