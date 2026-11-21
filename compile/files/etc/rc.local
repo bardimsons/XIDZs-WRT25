@@ -11,6 +11,13 @@
         irq=$(awk -v d="$dev" '$NF==d {gsub(/:/,"",$1); print $1; exit}' /proc/interrupts)
         [ -n "$irq" ] && [ -w "/proc/irq/$irq/smp_affinity" ] && echo "$mask" > "/proc/irq/$irq/smp_affinity"
     done
+    ncpu=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null)
+    if [ -n "$ncpu" ] && [ "$ncpu" -gt 1 ] 2>/dev/null; then
+        xps_mask=$(printf '%x' "$(( (1 << ncpu) - 1 ))")
+        for q in /sys/class/net/eth0/queues/tx-*/xps_cpus; do
+            [ -w "$q" ] && echo "$xps_mask" > "$q" 2>/dev/null || true
+        done
+    fi
 ) &
 tc qdisc replace dev eth0 root fq_codel 2>/dev/null || true
 exit 0
