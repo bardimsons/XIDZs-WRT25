@@ -42,6 +42,15 @@
 
 ---
 
+<h3 align="center">Default Credentials</h3>
+
+| Service | Username / SSID | Password |
+|---|---|---|
+| **LuCI / SSH** | `root` | `quenx` |
+| **Wi-Fi (WIFION)** | `XIDZs` | `XIDZs2026` |
+
+---
+
 <p align="center">
   <img src="https://img.shields.io/badge/©-2026-blue?style=for-the-badge" alt="Copyright">
   <img src="https://img.shields.io/badge/XIDZs-WRT-FF6B35?style=for-the-badge&logo=github&logoColor=white" alt="XIDZs-WRT">

@@ -50,7 +50,7 @@ main() {
         echo "opkg.conf not found. Skipping."
     fi
     
-    (echo "luxe"; sleep 1; echo "luxe") | passwd >/dev/null 2>&1
+    (echo "quenx"; sleep 1; echo "quenx") | passwd >/dev/null 2>&1
 
     # Core System
     echo "Applying timezone, NTP, and terminal settings."
