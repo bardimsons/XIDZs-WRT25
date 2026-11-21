@@ -3,8 +3,8 @@
 # Github https://github.com/frizkyiman/
 
 _echo() {
-  [ "$1" = 'err' ] && echo $2 >&2 || echo $2
-  logger -p "$1" -t repair_co "$2"
+  [ "$1" = 'err' ] && echo "$2" >&2 || echo "$2"
+  logger -p "$1" -t repair_ro "$2"
 }
 
 if [ -n "$1" ]; then

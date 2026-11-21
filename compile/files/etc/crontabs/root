@@ -12,6 +12,6 @@
 # restart xidzs bot every 12h
 #0 */12 * * * /etc/init.d/xidzs restart
 # Network stats every 5m
-# RAM cleanup every 10h
-0 */10 * * * /sbin/free.sh >/dev/null 2>&1
+# RAM cleanup disabled by default (periodic drop_caches hurts latency and cache hit rate)
+#0 */10 * * * /sbin/free.sh >/dev/null 2>&1
 */5 * * * * /www/netmonitor/vnstati/vnstati.sh >/dev/null 2>&1

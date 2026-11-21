@@ -134,6 +134,7 @@ misc_file_perms() {
     
     local conf_files=( 
         "files/etc/crontabs/root"
+        "files/etc/hotplug.d/net/30-rfs-tuning"
         "files/etc/rc.local"
         "files/etc/sysctl.conf"
     )
@@ -161,7 +162,7 @@ misc_base_config() {
     # Create UCI directory
     [ ! -d "$uci_dir" ] && mkdir -p "$uci_dir"
 
-    if [[ "${TARGET_BUILD:-}" == "s905x-b860h" || "${TARGET_BUILD:-}" == "s905x" ]]; then
+    if [[ "${TARGET_BUILD:-}" == "s905x" ]]; then
         log "INFO" "WIFIOFF target detected"
         cp -f "${script_dir}/xidz/wifioff/99-init-settings.sh" "$uci_dir/99-init-settings.sh" || log "WARN" "WIFIOFF init script failed"
     else
@@ -407,8 +408,9 @@ run_tunnel() {
     if [[ "${ARCH_3}" == "x86_64" ]]; then meta_file="mihomo-linux-${ARCH_1}-compatible"; fi
     
     setup_openclash() {
-        local oc_core=$(curl -s "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" | jq -r '.assets[].browser_download_url' | grep -oE "https.*${meta_file}-v[0-9]+\.[0-9]+\.[0-9]+\.gz" | head -n 1)
-        local oc_ipk=$(curl -s "https://api.github.com/repos/Yogxx/OpenClash/releases" | jq -r '.[0].assets[].browser_download_url' | grep -iE "luci-app-openclash.*\.${pkg_ext}$" | head -n 1)
+        local oc_core oc_ipk
+        oc_core=$(curl -sL "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -oE "https.*${meta_file}-v[0-9]+\.[0-9]+\.[0-9]+\.gz" | head -n 1 || true)
+        oc_ipk=$(curl -sL "https://api.github.com/repos/Yogxx/OpenClash/releases" | jq -r '.[0].assets[].browser_download_url' 2>/dev/null | grep -iE "luci-app-openclash.*\.${pkg_ext}$" | head -n 1 || true)
         [[ -z "$oc_core" || -z "$oc_ipk" ]] && { log "ERROR" "OpenClash URL not found"; return 1; }
         
         local clean_name=$(basename "${oc_ipk}" | sed -E 's/^[0-9\.\+\-_]+luci-app/luci-app/')
@@ -428,10 +430,12 @@ run_tunnel() {
             pw_search="23\.05-24\.10_luci-app-passwall"
         fi
         
-        local pw_ipk=$(curl -s "https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall/releases/latest" | jq -r '.assets[].browser_download_url' | grep -iE "${pw_search}.*\.${pkg_ext}$" | head -n 1)
+        local pw_json pw_ipk
+        pw_json=$(fetch_url_cached "https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall/releases/latest")
+        pw_ipk=$(printf '%s' "$pw_json" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "${pw_search}.*\.${pkg_ext}$" | head -n 1 || true)
         
         # General release fallback
-        [[ -z "$pw_ipk" ]] && pw_ipk=$(curl -s "https://api.github.com/repos/Openwrt-Passwall/openwrt-passwall/releases/latest" | jq -r '.assets[].browser_download_url' | grep -iE "luci-app-passwall.*\.${pkg_ext}$" | head -n 1)
+        [[ -z "$pw_ipk" ]] && pw_ipk=$(printf '%s' "$pw_json" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "luci-app-passwall.*\.${pkg_ext}$" | head -n 1 || true)
         
         [[ -z "$pw_ipk" ]] && { log "ERROR" "Passwall URL not found"; return 1; }
         
@@ -452,7 +456,8 @@ run_tunnel() {
         local nikki_ver="${VEROP:-24.10}"
         [[ "$nikki_ver" == "23.05" ]] && nikki_ver="24.10"
         
-        local nikki_url=$(curl -s "https://api.github.com/repos/Yogxx/OpenWrt-nikkiku/releases" | jq -r '.[0].assets[].browser_download_url' | grep -oE "https.*nikki_${ARCH_3}-openwrt-${nikki_ver}.*\.tar.gz" | head -n 1)
+        local nikki_url
+        nikki_url=$(curl -sL "https://api.github.com/repos/Yogxx/OpenWrt-nikkiku/releases" | jq -r '.[0].assets[].browser_download_url' 2>/dev/null | grep -oE "https.*nikki_${ARCH_3}-openwrt-${nikki_ver}.*\.tar.gz" | head -n 1 || true)
         [[ -z "$nikki_url" ]] && { log "ERROR" "Nikki URL not found"; return 1; }
         
         local n_file=$(basename "${nikki_url}")
@@ -465,8 +470,10 @@ run_tunnel() {
         local ft_prefix="fusiontunx_"
         [[ "$pkg_ext" == "apk" ]] && ft_prefix="fusiontunx-"
         
-        local ft_ipk=$(curl -s "https://api.github.com/repos/bobbyunknown/FusionTunX/releases" | jq -r '.[0].assets[].browser_download_url' | grep -iE "luci-app-fusiontunx.*\.${pkg_ext}$" | head -n 1)
-        local ft_core=$(curl -s "https://api.github.com/repos/bobbyunknown/FusionTunX/releases" | jq -r '.[0].assets[].browser_download_url' | grep -iE "${ft_prefix}[^\"]*${ARCH_3}[^\"]*\.${pkg_ext}$" | head -n 1)
+        local ft_json ft_ipk ft_core
+        ft_json=$(fetch_url_cached "https://api.github.com/repos/bobbyunknown/FusionTunX/releases")
+        ft_ipk=$(printf '%s' "$ft_json" | jq -r '.[0].assets[].browser_download_url' 2>/dev/null | grep -iE "luci-app-fusiontunx.*\.${pkg_ext}$" | head -n 1 || true)
+        ft_core=$(printf '%s' "$ft_json" | jq -r '.[0].assets[].browser_download_url' 2>/dev/null | grep -iE "${ft_prefix}[^\"]*${ARCH_3}[^\"]*\.${pkg_ext}$" | head -n 1 || true)
         [[ -z "$ft_ipk" || -z "$ft_core" ]] && { log "ERROR" "FusionTunX URL not found"; return 1; }
         
         local clean_name=$(basename "${ft_ipk}" | sed -E 's/^[0-9\.\+\-_]+luci-app/luci-app/')
@@ -483,7 +490,8 @@ run_tunnel() {
     
     setup_qtun() {
         local qtun_search="luci-app-qtun_.*_${ARCH_3}\.${pkg_ext}$"
-        local qtun_url=$(curl -s "https://api.github.com/repos/de-quenx/luci-app-qtun/releases/latest" | jq -r '.assets[].browser_download_url' | grep -iE "${qtun_search}" | head -n 1)
+        local qtun_url
+        qtun_url=$(curl -sL "https://api.github.com/repos/de-quenx/luci-app-qtun/releases/latest" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "${qtun_search}" | head -n 1 || true)
         [[ -z "$qtun_url" ]] && { log "ERROR" "Qtun URL not found"; return 1; }
         
         local clean_name=$(basename "${qtun_url}" | sed -E "s/_${ARCH_3}//")
@@ -506,8 +514,10 @@ run_tunnel() {
         local co_prefix="clashoo_"
         [[ "$pkg_ext" == "apk" ]] && co_prefix="clashoo-"
         
-        local co_ipk=$(curl -s "https://api.github.com/repos/kenzok8/openwrt-clashoo/releases/latest" | jq -r '.assets[].browser_download_url' | grep -iE "luci-app-clashoo.*(${ARCH_3}|all)\.${pkg_ext}$" | head -n 1)
-        local co_core=$(curl -s "https://api.github.com/repos/kenzok8/openwrt-clashoo/releases/latest" | jq -r '.assets[].browser_download_url' | grep -iE "${co_prefix}[^\"]*${ARCH_3}\.${pkg_ext}$" | grep -vi "luci-app" | head -n 1)
+        local co_json co_ipk co_core
+        co_json=$(fetch_url_cached "https://api.github.com/repos/kenzok8/openwrt-clashoo/releases/latest")
+        co_ipk=$(printf '%s' "$co_json" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "luci-app-clashoo.*(${ARCH_3}|all)\.${pkg_ext}$" | head -n 1 || true)
+        co_core=$(printf '%s' "$co_json" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "${co_prefix}[^\"]*${ARCH_3}\.${pkg_ext}$" | grep -vi "luci-app" | head -n 1 || true)
         [[ -z "$co_ipk" || -z "$co_core" ]] && { log "ERROR" "Clashoo URL not found"; return 1; }
         
         local clean_name=$(basename "${co_ipk}" | sed -E 's/^[0-9\.\+\-_]+luci-app/luci-app/')
@@ -543,10 +553,12 @@ run_tunnel() {
         
         # Regex to prevent architecture mismatch
         local pwssh_search="passwall-ssh_${ver_major}_[0-9\.]+_${ARCH_3}\.${pkg_ext}$"
-        local pwssh_url=$(curl -s "https://api.github.com/repos/de-quenx/Passwall-SSH/releases/latest" | jq -r '.assets[].browser_download_url' | grep -iE "${pwssh_search}" | head -n 1)
+        local pwssh_json pwssh_url
+        pwssh_json=$(fetch_url_cached "https://api.github.com/repos/de-quenx/Passwall-SSH/releases/latest")
+        pwssh_url=$(printf '%s' "$pwssh_json" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "${pwssh_search}" | head -n 1 || true)
         
         # Generic fallback
-        [[ -z "$pwssh_url" ]] && pwssh_url=$(curl -s "https://api.github.com/repos/de-quenx/Passwall-SSH/releases/latest" | jq -r '.assets[].browser_download_url' | grep -iE "passwall-ssh_[0-9]+_[0-9\.]+_${ARCH_3}\.${pkg_ext}$" | head -n 1)
+        [[ -z "$pwssh_url" ]] && pwssh_url=$(printf '%s' "$pwssh_json" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "passwall-ssh_[0-9]+_[0-9\.]+_${ARCH_3}\.${pkg_ext}$" | head -n 1 || true)
         
         [[ -z "$pwssh_url" ]] && { log "ERROR" "Passwall-SSH URL not found"; return 1; }
         
@@ -640,17 +652,11 @@ run_makeimage() {
     qmi-utils mbim-utils uqmi umbim usbutils usb-modeswitch luci-proto-ncm luci-proto-qmi luci-proto-mbim xmm-modem luci-proto-xmm "
     
     # Wireless drivers
-    if [[ "${TARGET_BUILD:-}" == "s905x-b860h" || "${TARGET_BUILD:-}" == "s905x" ]]; then
+    if [[ "${TARGET_BUILD:-}" == "s905x" ]]; then
         log "INFO" "WIFIOFF target: Excluded wireless drivers"
     else
         log "INFO" "Standard target: Adding wireless drivers"
-        if [[ "$target_profile" == "rpi-5" && "${BASE:-}" == "immortalwrt" ]]; then
-            PACKAGES+=" wpad-openssl iw iwinfo wireless-regdb kmod-cfg80211 kmod-mac80211"
-        elif [[ "$target_profile" =~ rpi-[2-5] ]]; then
-            PACKAGES+=" wpad-basic-mbedtls iw iwinfo wireless-regdb kmod-cfg80211 kmod-mac80211"
-        else
-            PACKAGES+=" wpad-openssl iw iwinfo wireless-regdb kmod-cfg80211 kmod-mac80211"
-        fi
+        PACKAGES+=" wpad-openssl iw iwinfo wireless-regdb kmod-cfg80211 kmod-mac80211"
     fi
     
     # Storage & NAS
@@ -741,13 +747,6 @@ run_makeimage() {
         openclash-nikki-passwall) PACKAGES+=" $OPENCLASH $NIKKI $PASSWALL " ;;
     esac
     
-    # Hardware specific tools
-    if [[ "$target_profile" =~ rpi-[2-5] ]]; then
-        PACKAGES+=" kmod-i2c-bcm2835 i2c-tools kmod-i2c-core kmod-i2c-gpio "
-    elif [[ "${ARCH_2:-}" == "x86_64" ]] || [[ "${ARCH_2:-}" == "i386" ]]; then
-        PACKAGES+=" kmod-iwlwifi iw-full pciutils wireless-tools "
-    fi
-    
     # ImageBuilder config exception
     if [[ "${TYPE:-}" == "OPHUB" ]] || [[ "${TYPE:-}" == "ULO" ]]; then
         PACKAGES+=" btrfs-progs kmod-fs-btrfs luci-app-amlogic "
@@ -813,7 +812,8 @@ run_repack() {
     fi
     
     cd "${work_dir}"
-    if ! ariadl "${url}" "${BRANCH}.zip"; then
+    local zip_file="${BRANCH}.zip"
+    if ! ariadl "${url}" "${zip_file}"; then
         if [[ "$b_type" == "--ophub" ]]; then 
             b_dir="${work_dir}/amlogic-s9xxx-openwrt-main"
             url="https://github.com/syntax-xidz/amlogic-s9xxx-openwrt/archive/refs/heads/main.zip"
@@ -821,10 +821,11 @@ run_repack() {
             b_dir="${work_dir}/ULO-Builder-main"
             url="https://github.com/syntax-xidz/ULO-Builder/archive/refs/heads/main.zip"
         fi
-        ariadl "${url}" "main.zip"
+        zip_file="main.zip"
+        ariadl "${url}" "${zip_file}"
     fi
     
-    unzip -q "*.zip" && rm -f *.zip
+    unzip -q "$zip_file" && rm -f "$zip_file"
     [[ "$b_type" == "--ophub" ]] && mkdir -p "${b_dir}/openwrt-armsr" || mkdir -p "${b_dir}/rootfs"
     
     local rf_files=("${output_dir}/"*"_${tunnel}-rootfs.tar.gz")
@@ -871,12 +872,12 @@ run_modsdcard() {
         cd "$GITHUB_WORKSPACE/$WORKING_DIR/compiled_images" || return 1
         local file_to_process="$image_path"
 
-        # Cleanup jobs on exit
-        cleanup() {
+        # Cleanup jobs on function return (preserves global EXIT trap)
+        modsdcard_cleanup() {
             sudo umount boot 2>/dev/null || true
             sudo losetup -D 2>/dev/null || true
         }
-        trap cleanup EXIT
+        trap 'modsdcard_cleanup' RETURN
 
         [ ! -f "$file_to_process" ] && { error_msg "File missing: ${log_target}"; return 1; }
 
@@ -941,7 +942,7 @@ run_modsdcard() {
 
         cd ..
         rm -rf "${suffix}" mod-boot-sdcard-main
-        cleanup
+        modsdcard_cleanup
         log "SUCCESS" "SDCard mod applied: ${log_target}"
         return 0
     }
@@ -956,7 +957,8 @@ run_modsdcard() {
             IFS=: read -r device dtb model <<< "$build"
             
             # Find base images
-            local image_files=($(find "$img_dir" -maxdepth 1 -type f -name "*${device}*.img.gz" ! -name "*-MODSDCARD.img.gz"))
+            local image_files=()
+            mapfile -t image_files < <(find "$img_dir" -maxdepth 1 -type f -name "*${device}*.img.gz" ! -name "*-MODSDCARD.img.gz")
             
             if ((${#image_files[@]} > 0)); then
                 for img in "${image_files[@]}"; do
@@ -978,7 +980,7 @@ run_modsdcard() {
     local img_dir="$GITHUB_WORKSPACE/$WORKING_DIR/compiled_images"
     local builds=()
     
-    # Target-specific build configurations
+    # Target-specific build configurations (HG680P only)
     if [[ "$MATRIXTARGET" == *"Amlogic s905x HG680P"* && "$MATRIXTARGET" == *"MODSDCARD"* ]]; then
         local p_suffix="s905x_HG680P-WIFION"
         local p_prefix="_s905x-wifion"
@@ -990,18 +992,6 @@ run_modsdcard() {
         # Build options mapping
         builds=(
             "${p_prefix}_:meson-gxl-s905x-p212.dtb:${p_suffix}"
-        )
-    elif [[ "$MATRIXTARGET" == *"Amlogic s905x B860H"* && "$MATRIXTARGET" == *"MODSDCARD"* ]]; then
-        local p_suffix="s905x_B860H-WIFION"
-        local p_prefix="_s905x-b860h-wifion"
-        if [[ "$MATRIXTARGET" == *"WIFIOFF"* ]]; then
-            p_suffix="s905x_B860H-WIFIOFF"
-            p_prefix="_s905x-b860h"
-        fi
-        
-        # Build options mapping
-        builds=(
-            "${p_prefix}_:meson-gxl-s905x-b860h.dtb:${p_suffix}"
         )
     fi
     
@@ -1019,161 +1009,9 @@ run_rename() {
     cd "${f_dir}" || error_msg "Directory traversal failed"
     
     local patterns=(
-        "-bcm27xx-bcm2708-rpi-ext4-factory|RaspberryPi_1B-Ext4_Factory"
-        "-bcm27xx-bcm2708-rpi-ext4-sysupgrade|RaspberryPi_1B-Ext4_Sysupgrade"
-        "-bcm27xx-bcm2708-rpi-squashfs-factory|RaspberryPi_1B-Squashfs_Factory"
-        "-bcm27xx-bcm2708-rpi-squashfs-sysupgrade|RaspberryPi_1B-Squashfs_Sysupgrade"
-        "-bcm27xx-bcm2709-rpi-2-ext4-factory|RaspberryPi_2B-Ext4_Factory"
-        "-bcm27xx-bcm2709-rpi-2-ext4-sysupgrade|RaspberryPi_2B-Ext4_Sysupgrade"
-        "-bcm27xx-bcm2709-rpi-2-squashfs-factory|RaspberryPi_2B-Squashfs_Factory"
-        "-bcm27xx-bcm2709-rpi-2-squashfs-sysupgrade|RaspberryPi_2B-Squashfs_Sysupgrade"
-        "-bcm27xx-bcm2710-rpi-3-ext4-factory|RaspberryPi_3B-Ext4_Factory"
-        "-bcm27xx-bcm2710-rpi-3-ext4-sysupgrade|RaspberryPi_3B-Ext4_Sysupgrade"
-        "-bcm27xx-bcm2710-rpi-3-squashfs-factory|RaspberryPi_3B-Squashfs_Factory"
-        "-bcm27xx-bcm2710-rpi-3-squashfs-sysupgrade|RaspberryPi_3B-Squashfs_Sysupgrade"
-        "-bcm27xx-bcm2711-rpi-4-ext4-factory|RaspberryPi_4B-Ext4_Factory"
-        "-bcm27xx-bcm2711-rpi-4-ext4-sysupgrade|RaspberryPi_4B-Ext4_Sysupgrade"
-        "-bcm27xx-bcm2711-rpi-4-squashfs-factory|RaspberryPi_4B-Squashfs_Factory"
-        "-bcm27xx-bcm2711-rpi-4-squashfs-sysupgrade|RaspberryPi_4B-Squashfs_Sysupgrade"
-        "-bcm27xx-bcm2712-rpi-5-ext4-factory|RaspberryPi_5-Ext4_Factory"
-        "-bcm27xx-bcm2712-rpi-5-ext4-sysupgrade|RaspberryPi_5-Ext4_Sysupgrade"
-        "-bcm27xx-bcm2712-rpi-5-squashfs-factory|RaspberryPi_5-Squashfs_Factory"
-        "-bcm27xx-bcm2712-rpi-5-squashfs-sysupgrade|RaspberryPi_5-Squashfs_Sysupgrade"
-        "-widora_mangopi-m28c-ext4-sysupgrade|Widora_Mangopi-M28C-Ext4-Sysupgrade"
-        "-widora_mangopi-m28c-squashfs-sysupgrade|Widora_Mangopi-M28C-Squashfs-Sysupgrade"
-        "-widora_mangopi-m28k-ext4-sysupgrade|Widora_Mangopi-M28K-Ext4-Sysupgrade"
-        "-widora_mangopi-m28k-squashfs-sysupgrade|Widora_Mangopi-M28K-Squashfs-Sysupgrade"       
-        "-xunlong_orangepi-r1-plus-lts-squashfs-sysupgrade|OrangePi-R1-Plus-LTS-squashfs-sysupgrade"
-        "-xunlong_orangepi-r1-plus-lts-ext4-sysupgrade|OrangePi-R1-Plus-LTS-ext4-sysupgrade"
-        "-xunlong_orangepi-r1-plus-squashfs-sysupgrade|OrangePi-R1-Plus-squashfs-sysupgrade"
-        "-xunlong_orangepi-r1-plus-ext4-sysupgrade|OrangePi-R1-Plus-ext4-sysupgrade"
-        "-xunlong_orangepi-pc2-squashfs-sdcard|OrangePi-Pc2-squashfs-sdcard"
-        "-xunlong_orangepi-pc2-ext4-sdcard|OrangePi-Pc2-ext4-sdcard"
-        "-xunlong_orangepi-zero-plus-squashfs-sdcard|OrangePi-Zero-Plus-squashfs-sdcard"
-        "-xunlong_orangepi-zero-plus-ext4-sdcard|OrangePi-Zero-Plus-ext4-sdcard"
-        "-xunlong_orangepi-zero2-squashfs-sdcard|OrangePi-Zero2-squashfs-sdcard"
-        "-xunlong_orangepi-zero2-ext4-sdcard|OrangePi-Zero2-ext4-sdcard"
-        "-xunlong_orangepi-zero3-squashfs-sdcard|OrangePi-Zero3-squashfs-sdcard"
-        "-xunlong_orangepi-zero3-ext4-sdcard|OrangePi-Zero3-ext4-sdcard"
-        "-friendlyarm_nanopi-r2c-ext4-sysupgrade|Nanopi-R2C-ext4-sysupgrade"
-        "-friendlyarm_nanopi-r2c-plus-ext4-sysupgrade|Nanopi-R2C-Plus-ext4-sysupgrade"
-        "-friendlyarm_nanopi-r2s-ext4-sysupgrade|Nanopi-R2S-ext4-sysupgrade"
-        "-friendlyarm_nanopi-r2s-plus-ext4-sysupgrade|Nanopi-R2S-Plus-ext4-sysupgrade"
-        "-friendlyarm_nanopi-r3s-ext4-sysupgrade|Nanopi-R3S-ext4-sysupgrade"
-        "-friendlyarm_nanopi-r4s-ext4-sysupgrade|Nanopi-R4S-ext4-sysupgrade"
-        "-friendlyarm_nanopi-r5s-ext4-sysupgrade|Nanopi-R5S-ext4-sysupgrade"
-        "-friendlyarm_nanopi-r6s-ext4-sysupgrade|Nanopi-R6S-ext4-sysupgrade"
-        "-friendlyarm_nanopi-neo2-ext4-sysupgrade|Nanopi-Neo2-ext4-sysupgrade"
-        "-friendlyarm_nanopi-neo-plus2-ext4-sysupgrade|Nanopi-Neo-Plus2-ext4-sysupgrade"
-        "-friendlyarm_nanopi-r1s-h5-ext4-sysupgrade|Nanopi-R1-H5-ext4-sysupgrade"
-        "-firefly_roc-rk3328-cc-ext4-sysupgrade|Firefly_Roc-RK3328-CC-ext4-sysupgrade"
-        "-firefly_roc-rk3328-cc-squashfs-sysupgrade|Firefly_Roc-RK3328-CC-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r2c-squashfs-sysupgrade|Nanopi-R2C-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r2c-plus-squashfs-sysupgrade|Nanopi-R2C-Plus-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r2s-squashfs-sysupgrade|Nanopi-R2S-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r2s-plus-squashfs-sysupgrade|Nanopi-R2S-Plus-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r3s-squashfs-sysupgrade|Nanopi-R3S-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r4s-squashfs-sysupgrade|Nanopi-R4S-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r5s-squashfs-sysupgrade|Nanopi-R5S-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r6s-squashfs-sysupgrade|Nanopi-R6S-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-neo2-squashfs-sysupgrade|Nanopi-Neo2-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-neo-plus2-squashfs-sysupgrade|Nanopi-Neo-Plus2-squashfs-sysupgrade"
-        "-friendlyarm_nanopi-r1s-h5-squashfs-sysupgrade|Nanopi-R1S-H5-squashfs-sysupgrade"
-        "x86-64-generic-ext4-combined-efi|X86_64_Generic_Ext4_Combined_EFI"
-        "x86-64-generic-ext4-combined|X86_64_Generic_Ext4_Combined"
-        "x86-64-generic-ext4-rootfs|X86_64_Generic_Ext4_Rootfs"
-        "x86-64-generic-squashfs-combined-efi|X86_64_Generic_Squashfs_Combined_EFI"
-        "x86-64-generic-squashfs-combined|X86_64_Generic_Squashfs_Combined"
-        "x86-64-generic-squashfs-rootfs|X86_64_Generic_Squashfs_Rootfs"
-        "x86-64-generic-rootfs|X86_64_Generic_Rootfs"
-        "x86-generic-generic-ext4-combined-efi|X86_32_Generic_Ext4_Combined_EFI"
-        "x86-generic-generic-ext4-combined|X86_32_Generic_Ext4_Combined"
-        "x86-generic-generic-ext4-rootfs|X86_32_Generic_Ext4_Rootfs"
-        "x86-generic-generic-squashfs-combined-efi|X86_32_Generic_Squashfs_Combined_EFI"
-        "x86-generic-generic-squashfs-combined|X86_32_Generic_Squashfs_Combined"
-        "x86-generic-generic-squashfs-rootfs|X86_32_Generic_Squashfs_Rootfs"
-        "x86-generic-generic-rootfs|X86_32_Generic_Rootfs"
-        "-h5-orangepi-pc2-|OrangePi_PC2"
-        "-h5-orangepi-prime-|OrangePi_Prime"
-        "-h5-orangepi-zeroplus-|OrangePi_ZeroPlus"
-        "-h5-orangepi-zeroplus2-|OrangePi_ZeroPlus2"
-        "-h6-orangepi-1plus-|OrangePi_1Plus"
-        "-h6-orangepi-3-|OrangePi_3"
-        "-h6-orangepi-3lts-|OrangePi_3LTS"
-        "-h6-orangepi-lite2-|OrangePi_Lite2"
-        "-h616-orangepi-zero2-|OrangePi_Zero2"
-        "-h618-orangepi-zero2w-|OrangePi_Zero2W"
-        "-h618-orangepi-zero3-|OrangePi_Zero3"
-        "-rk3566-orangepi-3b-|OrangePi_3B"
-        "-rk3588s-orangepi-5-|OrangePi_5"
-        "-firefly_roc-rk3328-cc-|Firefly-RK3328"
-        "-s905x-b860h-|s905x-B860H"
         "-s905x-hg680p-|s905x-HG680P"
-        "-s905x2-b860hv5-|s905x2-B860H-V5"
-        "-s905x2-hg680-fj-|s905x2-HG680-FJ"
-        "-s905x2-b860h-v5-v2|s905x2-B860H-V5"
-        "-s905x2-hg680-fj-v2|s905x2-HG680-FJ"
-        "-s905x3-|s905x3"
-        "-s905x4-|s905x4_AT01-Ax810"
         "_s905x-wifion_|s905x_HG680P-WIFION"
-        "_s905x-b860h-wifion_|s905x_B860H-WIFION"
         "_s905x_|s905x_HG680P-WIFIOFF"
-        "_s905x-b860h_|s905x_B860H-WIFIOFF"
-        "_s905d_|s905d_Phicomm-N1"
-        "_s905l-mg101_|s905l_Mibox-4"
-        "_s905l_|s905l_B860AV2"
-        "_s905l2_|s905l2_M301A"
-        "_s905l3_|s905l3_HG680-LC"
-        "_s905l3b-e900v22e_|s905l3b_MGV2000"
-        "_s905lb-q96-mini_|s905lb_Q96-mini"
-        "_s905l3a-m401a_|s905l3a_B863AV3"
-        "_s905-beelink-mini_|s905_Beelink-Mini"
-        "_s905-mxqpro-plus_|s905_MXQ-Pro+"
-        "_s922x-gtking_|s922x_GtKing"
-        "_s922x_|s922x_GtKing-Pro"
-        "_s922x-gtkingpro-h_|s922x_GtKing-Pro-H"
-        "_s922x-ugoos-am6_|s922x_UGOOS-AM6-Plus"
-        "_s912-nexbox-a1_|s912_Nexbox-A1-A95X"
-        "_s912-nexbox-a2_|s912_Nexbox-A95X-A2"
-        "_s905l2_|s905l2_MGV_M301A"
-        "_s905x2-x96max-2g_|s905x2-x96Max2Gb-A95X-F2"
-        "_s905x2_|s905x2_x96Max-4Gb-Tx5-Max"
-        "_s905x2-b860hv5_|s905x2_B860H-V5"
-        "_s905x2-hg680fj_|s905x2_HG680_FJ"
-        "_s905x3-x96air_|s905x3-X96Air100M"
-        "_s905x3-x96air-gb_|s905x3-x96Air1Gbps"
-        "_s905x3-hk1_|s905x3-HK1BOX"
-        "_s905x3_|s905x3_X96MAX+_100Mb"
-        "_s905x3-x96max_|s905x3_X96MAX+_1Gb"
-        "_s905x3-a95xf3-gb_|s905x3_A95xF3-1Gb"
-        "_s905x3-a95xf3_|s905x3_A95xF3-100M"
-        "_s905x3-x88-pro-x3_|s905x3_X88-Pro-X3"
-        "_s905x3-h96max_|s905x3_H96-Max-X3"
-        "_s905x4-advan_|s905x4_AT01-AX810"
-        "_s905w_|s905w_TX3_Mini"
-        "_s905w-x96-mini_|s905w-X96-Mini"
-        "_s905w-x96w_|s905w-X96W"
-        "_s912-t95z-plus_|s912-T95Z-Plus"
-        "_x98h_|X98H-H618"
-        "_s912-tx9-pro-3g_|s912-Tx9-Pro-1Gb"
-        "_s912-tx9-pro-2g_|s912-Tx9-Pro-100M"
-        "_allwinner_orangepi-3_|OrangePi_3"
-        "_allwinner_orangepi-zplus_|OrangePi_ZeroPlus"
-        "_allwinner_orangepi-zplus2_|OrangePi_ZeroPlus2"
-        "_allwinner_orangepi-zero2_|OrangePi_Zero2"
-        "_allwinner_orangepi-zero3_|OrangePi_Zero3"
-        "_allwinner_tanix-tx6_|Tanix-TX6"
-        "_rk3318-box_|rk3318-Box"
-        "_renegade-rk3328_|Firefly-RK3328"
-        "_panther-x2_|rk3566-Panther-X2"
-        "_rock5b_|rk3588-Rock5B"
-        "_king3399_|rk3399-King3399"
-        "_nanopi-m5_|rk3576-NanoPi-M5"
-        "_h96-max-m2_|rk3528-H96-Max-M2"
-        "_orangepi-5b_|rk3588s-OrangePi_5B"
-        "_orangepi-5-plus_|rk3588-OrangePi_5Plus"
-        "_nanopi-r5s_|Nanopi-r5s"
-        "_nanopi-r5c_|Nanopi-r5c"
     )
 
     for item in "${patterns[@]}"; do
@@ -1190,7 +1028,7 @@ run_rename() {
         done
         for file in *"${search}"*.tar.gz; do
             if [[ -f "$file" ]]; then
-                local new_name="XIDZs-${OP_BASE}-${BRANCH}-${replace}-${TUNNEL}-${DATE}.img.gz"
+                local new_name="XIDZs-${OP_BASE}-${BRANCH}-${replace}-${TUNNEL}-${DATE}.tar.gz"
                 log "INFO" "Renaming: $file -> $new_name"
                 mv "$file" "$new_name" || log "WARN" "Rename failed: $file"
             fi

@@ -30,88 +30,12 @@ on:
       target:
         description: "Select device"
         required: true
-        default: "all-devices-ophub"
+        default: "Amlogic s905x HG680P"
         type: choice
         options:
-          - all-devices-ophub
-          - all-devices-ulo
-          - all-devices-official
-          - opt-devices-official
-          - widora-devices
-          - Widora Mangopi M28C
-          - Widora Mangopi M28K
-          - Nanopi-r2c
-          - Nanopi-r2c Plus
-          - Nanopi-r2s
-          - Nanopi-r3s
-          - Nanopi-r4s
-          - Nanopi-r5s
-          - Orangepi Pc 2
-          - Orangepi R1 Plus
-          - Orangepi R1 Plus LTS
-          - Raspberry Pi B
-          - Raspberry Pi 2B
-          - Raspberry Pi 3B
-          - Raspberry Pi 4B
-          - Raspberry Pi 5
-          - X86-64
-          - X86-Generic
-          - Allwinner H5 Orangepi Zero Plus
-          - Allwinner H5 Orangepi Zero Plus2
-          - Allwinner H6 Orangepi 3
-          - Allwinner H6 Orangepi 3 LTS
-          - Allwinner H616 Orangepi Zero2
-          - Allwinner H618 Orangepi Zero3
-          - Orangepi 3B
-          - Amlogic B860Hv5 - 6.1.66
-          - Amlogic B860Hv5 - 6.4.11
-          - Amlogic B860Hv5 - 6.2.2
-          - Amlogic HG680-FJ - 6.1.66
-          - Amlogic HG680-FJ - 6.4.11
-          - Amlogic HG680-FJ - 6.2.2
-          - Amlogic s905x4 - 6.1.66
-          - Amlogic s905x4 - 5.4.279
-          - Amlogic s905x4 - 6.6.6
-          - Amlogic s905x4 - 5.4.265
-          - Amlogic s905 MXQ-Pro+
-          - Amlogic s905 Beelink-Mini
-          - Amlogic s905lb Q96-Mini
-          - Amlogic s905w TX3-Mini
-          - Amlogic s905w X96-Mini
-          - Amlogic s905w X96W
-          - Amlogic s905x B860H WIFION
-          - Amlogic s905x B860H WIFION MODSDCARD
-          - Amlogic s905x HG680P WIFION
-          - Amlogic s905x HG680P WIFION MODSDCARD
-          - Amlogic s905x B860H WIFIOFF
-          - Amlogic s905x B860H WIFIOFF MODSDCARD
-          - Amlogic s905x HG680P WIFIOFF
-          - Amlogic s905x HG680P WIFIOFF MODSDCARD
-          - Amlogic s905x2 B860Hv5
-          - Amlogic s905x2 HG680-FJ
-          - Amlogic s905x2 X96Max-v2Gb
-          - Amlogic s905x2 X96Max-v4Gb
-          - Amlogic s905x3 HK1-Vontar-X3
-          - Amlogic s905x3 X96Air_100mb
-          - Amlogic s905x3 X96Air_1Gb
-          - Amlogic s905x3 X96Max+_100Mb
-          - Amlogic s905x3 X96Max+_1Gb
-          - Amlogic s905x3 H96-Max-X3
-          - Amlogic s912 Nexbox-A1-A95X
-          - Amlogic s912 Nexbox-A95X-A2
-          - Amlogic s912 T95Z-Plus
-          - X98H-H618
-          - Amlogic s922x GT-King-Pro
-          - Amlogic TX9-Pro 1Gb
-          - Amlogic TX9-Pro 100mb
-          - Tanix-TX6
-          - Rk3318-BOX
-          - Firefly-Rk3328
-          - Rk3399 King3399
-          - Orangepi 5 Plus
-          - Orangepi 5B
-          - H96-Max-M2
-          - Nanopi-M5
+          - all-hg680p
+          - Amlogic s905x HG680P
+          - Amlogic s905x HG680P MODSDCARD
       tunnel:
         description: "Select Tunnel VPN"
         required: true
@@ -219,57 +143,15 @@ jobs:
       - name: Set Matrix Target JSON
         id: set-matrix
         run: |
-          ALL_OFFICIAL_JSON=$(cat << 'EOJ'
-          { "target": ["Nanopi-r2c", "Nanopi-r2c Plus", "Nanopi-r2s", "Nanopi-r3s", "Nanopi-r4s", "Nanopi-r5s", "Orangepi Pc 2", "Orangepi R1 Plus", "Orangepi R1 Plus LTS", "Raspberry Pi 2B", "Raspberry Pi 3B", "Raspberry Pi 4B", "X86-64"] }
-          EOJ
-          )
-          
-          OPT_OFFICIAL_JSON=$(cat << 'EOJ'
-          { "target": ["Raspberry Pi B", "Raspberry Pi 5", "X86-Generic"] }
-          EOJ
-          )
-
-          ALL_ULO_JSON=$(cat << 'EOJ'
-          { "target": ["Allwinner H5 Orangepi Zero Plus", "Allwinner H5 Orangepi Zero Plus2", "Allwinner H6 Orangepi 3", "Allwinner H6 Orangepi 3 LTS", "Allwinner H616 Orangepi Zero2", "Allwinner H618 Orangepi Zero3", "Orangepi 3B", "Amlogic B860Hv5 - 6.1.66", "Amlogic B860Hv5 - 6.4.11", "Amlogic B860Hv5 - 6.2.2", "Amlogic HG680-FJ - 6.1.66", "Amlogic HG680-FJ - 6.4.11", "Amlogic HG680-FJ - 6.2.2", "Amlogic s905x4 - 6.1.66", "Amlogic s905x4 - 5.4.279", "Amlogic s905x4 - 6.6.6", "Amlogic s905x4 - 5.4.265"] }
-          EOJ
-          )
-
-          ALL_OPHUB_JSON=$(cat << 'EOJ'
-          { "target": ["Amlogic s905 MXQ-Pro+", "Amlogic s905 Beelink-Mini", "Amlogic s905lb Q96-Mini", "Amlogic s905w TX3-Mini", "Amlogic s905w X96-Mini", "Amlogic s905w X96W", "Amlogic s905x B860H WIFION", "Amlogic s905x B860H WIFION MODSDCARD", "Amlogic s905x HG680P WIFION", "Amlogic s905x HG680P WIFION MODSDCARD", "Amlogic s905x B860H WIFIOFF", "Amlogic s905x B860H WIFIOFF MODSDCARD", "Amlogic s905x HG680P WIFIOFF", "Amlogic s905x HG680P WIFIOFF MODSDCARD", "Amlogic s905x2 B860Hv5", "Amlogic s905x2 HG680-FJ", "Amlogic s905x2 X96Max-v2Gb", "Amlogic s905x2 X96Max-v4Gb", "Amlogic s905x3 HK1-Vontar-X3", "Amlogic s905x3 X96Air_100mb", "Amlogic s905x3 X96Air_1Gb", "Amlogic s905x3 X96Max+_100Mb", "Amlogic s905x3 X96Max+_1Gb", "Amlogic s905x3 H96-Max-X3", "Amlogic s912 Nexbox-A1-A95X", "Amlogic s912 Nexbox-A95X-A2", "Amlogic s922x GT-King-Pro", "Tanix-TX6", "Rk3318-BOX", "Rk3399 King3399", "Orangepi 5 Plus", "Orangepi 5B", "H96-Max-M2", "Nanopi-M5", "Firefly-Rk3328", "Amlogic s912 T95Z-Plus", "X98H-H618", "Amlogic TX9-Pro 1Gb", "Amlogic TX9-Pro 100mb"] }
-          EOJ
-          )
-
-          OPT_OPHUB_JSON=$(cat << 'EOJ'
-          { "target": ["Amlogic s905x B860H", "Amlogic s905x B860H MODSDCARD", "Amlogic s905x HG680P", "Amlogic s905x HG680P MODSDCARD"] }
-          EOJ
-          )
-
-          RK_OPHUB_JSON=$(cat << 'EOJ'
-          { "target": ["Orangepi 5 Plus", "Orangepi 5B", "H96-Max-M2", "Nanopi-M5", "Firefly-Rk3328"] }
-          EOJ
-          )
-          
-          WD_OFFICIAL_JSON=$(cat << 'EOJ'
-          { "target": ["Widora Mangopi M28C", "Widora Mangopi M28K"] }
-          EOJ
-          )
-
-          if [ "${{ inputs.target }}" == "all-devices-official" ]; then
-            echo "target=$(echo "$ALL_OFFICIAL_JSON" | jq -c '.target')" >> "$GITHUB_OUTPUT"
-          elif [ "${{ inputs.target }}" == "opt-devices-official" ]; then
-            echo "target=$(echo "$OPT_OFFICIAL_JSON" | jq -c '.target')" >> "$GITHUB_OUTPUT"
-          elif [ "${{ inputs.target }}" == "widora-devices" ]; then
-            echo "target=$(echo "$WD_OFFICIAL_JSON" | jq -c '.target')" >> "$GITHUB_OUTPUT"
-          elif [ "${{ inputs.target }}" == "all-devices-ulo" ]; then
-            echo "target=$(echo "$ALL_ULO_JSON" | jq -c '.target')" >> "$GITHUB_OUTPUT"
-          elif [ "${{ inputs.target }}" == "all-devices-ophub" ]; then
-            echo "target=$(echo "$ALL_OPHUB_JSON" | jq -c '.target')" >> "$GITHUB_OUTPUT"
-          elif [ "${{ inputs.target }}" == "opt-devices-ophub" ]; then
-            echo "target=$(echo "$OPT_OPHUB_JSON" | jq -c '.target')" >> "$GITHUB_OUTPUT"
-          elif [ "${{ inputs.target }}" == "rk-devices-ophub" ]; then
-            echo "target=$(echo "$RK_OPHUB_JSON" | jq -c '.target')" >> "$GITHUB_OUTPUT"
+          if [ "${{ inputs.target }}" == "all-hg680p" ]; then
+            echo 'target=["Amlogic s905x HG680P WIFION","Amlogic s905x HG680P WIFIOFF","Amlogic s905x HG680P WIFION MODSDCARD","Amlogic s905x HG680P WIFIOFF MODSDCARD"]' >> "$GITHUB_OUTPUT"
+          elif [ "${{ inputs.target }}" == "Amlogic s905x HG680P" ]; then
+            echo 'target=["Amlogic s905x HG680P WIFION","Amlogic s905x HG680P WIFIOFF"]' >> "$GITHUB_OUTPUT"
+          elif [ "${{ inputs.target }}" == "Amlogic s905x HG680P MODSDCARD" ]; then
+            echo 'target=["Amlogic s905x HG680P WIFION MODSDCARD","Amlogic s905x HG680P WIFIOFF MODSDCARD"]' >> "$GITHUB_OUTPUT"
           else
-            echo "target=$(jq -nc --arg d "${{ inputs.target }}" '[$d]')" >> "$GITHUB_OUTPUT"
+            echo "Unsupported target: ${{ inputs.target }}" >&2
+            exit 1
           fi
 
       - name: Setup Global Environment
@@ -355,7 +237,7 @@ jobs:
 
       - name: Expand Virtual Disk
         id: disk
-        if: steps.init.outputs.status == 'success' && contains(inputs.target, 'all-devices')
+        if: steps.init.outputs.status == 'success' && inputs.target == 'all-hg680p'
         run: |
           mnt_size=$(expr $(df -h /mnt | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 1)
           root_size=$(expr $(df -h / | tail -1 | awk '{print $4}' | sed 's/[[:alpha:]]//g' | sed 's/\..*//') - 4)
@@ -389,152 +271,30 @@ jobs:
             immortalwrt) echo "OP_BASE=ImmortalWrt" >> $GITHUB_ENV ;;
           esac
 
-          BUILDER_TYPE="official"
+          BUILDER_TYPE="ophub"
+          TARGET_NAME="armsr-armv8"
+          TARGET_SYSTEM="armsr/armv8"
+          ARCH_1="arm64"
+          ARCH_2="aarch64"
+          ARCH_3="aarch64_generic"
+          PROFILE="generic"
+
           case "$MATRIXTARGET" in
-             "Allwinner"* | "Orangepi 3B" | "Amlogic B860Hv5"* | "Amlogic HG680-FJ"* | "Amlogic s905x4"*)
-                BUILDER_TYPE="ulo" ;;
-             "Amlogic s905 "* | "Amlogic s905lb"* | "Amlogic s905w"* | "Amlogic s905x "* | "Amlogic s905x2 "* | "Amlogic s905x3 "* | "Amlogic s905x4 Advan"* | "Amlogic s912"* | "Amlogic s922x"* | "Tanix"* | "Rk3318"* | "Firefly"* | "Rk3399"* | "Orangepi 5"* | "H96-Max"* | "Nanopi-M5" | "X98H-H618" | "Amlogic TX9-Pro "* | "Orangepi 5B" | "Orangepi-Zero3")
-                BUILDER_TYPE="ophub" ;;
+            "Amlogic s905x HG680P WIFION" | "Amlogic s905x HG680P WIFION MODSDCARD")
+              KERNEL="5.15.y_6.1.y_6.6.y_6.12.y"
+              TARGET_BUILD="s905x-wifion"
+              ;;
+            "Amlogic s905x HG680P WIFIOFF" | "Amlogic s905x HG680P WIFIOFF MODSDCARD")
+              KERNEL="6.1.y_6.6.y_6.12.y_6.18.y"
+              TARGET_BUILD="s905x"
+              ;;
+            *)
+              echo "Unsupported HG680P target: $MATRIXTARGET" >&2
+              exit 1
+              ;;
           esac
 
-          if [ "$BUILDER_TYPE" == "official" ]; then
-            case "$MATRIXTARGET" in
-              "Nanopi-r2c" | "Nanopi-r2c Plus" | "Nanopi-r2s" | "Nanopi-r3s" | "Nanopi-r4s" | "Nanopi-r5s")
-                TARGET_NAME="rockchip-armv8"; TARGET_SYSTEM="rockchip/armv8"
-                ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_generic"
-                ;;
-              "Widora Mangopi M28C")
-                TARGET_NAME="rockchip-armv8"; TARGET_SYSTEM="rockchip/armv8"
-                ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_generic"
-                ;;
-              "Widora Mangopi M28K")
-                TARGET_NAME="rockchip-armv8"; TARGET_SYSTEM="rockchip/armv8"
-                ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_generic"
-                ;;
-              "Orangepi Pc 2")
-                TARGET_NAME="sunxi-cortexa53"; TARGET_SYSTEM="sunxi/cortexa53"
-                ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_cortex-a53"
-                ;;
-              "Orangepi R1 Plus" | "Orangepi R1 Plus LTS")
-                TARGET_NAME="rockchip-armv8"; TARGET_SYSTEM="rockchip/armv8"
-                ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_generic"
-                ;;
-              "Raspberry Pi B")
-                TARGET_NAME="bcm27xx-bcm2708"; TARGET_SYSTEM="bcm27xx/bcm2708"
-                ARCH_1="armv6"; ARCH_2="arm"; ARCH_3="arm_arm1176jzf-s_vfp"
-                ;;
-              "Raspberry Pi 2B")
-                TARGET_NAME="bcm27xx-bcm2709"; TARGET_SYSTEM="bcm27xx/bcm2709"
-                ARCH_1="armv7"; ARCH_2="arm"; ARCH_3="arm_cortex-a7_neon-vfpv4"
-                ;;
-              "Raspberry Pi 3B")
-                TARGET_NAME="bcm27xx-bcm2710"; TARGET_SYSTEM="bcm27xx/bcm2710"
-                ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_cortex-a53"
-                ;;
-              "Raspberry Pi 4B")
-                TARGET_NAME="bcm27xx-bcm2711"; TARGET_SYSTEM="bcm27xx/bcm2711"
-                ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_cortex-a72"
-                ;;
-              "Raspberry Pi 5")
-                TARGET_NAME="bcm27xx-bcm2712"; TARGET_SYSTEM="bcm27xx/bcm2712"
-                ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_cortex-a76"
-                ;;
-              "X86-64")
-                TARGET_NAME="x86-64"; TARGET_SYSTEM="x86/64"
-                ARCH_1="amd64"; ARCH_2="x86_64"; ARCH_3="x86_64"
-                ;;
-              "X86-Generic")
-                TARGET_NAME="x86-generic"; TARGET_SYSTEM="x86/generic"
-                ARCH_1="386"; ARCH_2="i386"; ARCH_3="i386_pentium4"
-                ;;
-            esac
-            
-            case "$MATRIXTARGET" in
-              "Nanopi-r2c") PROFILE="friendlyarm_nanopi-r2c" ;;
-              "Nanopi-r2c Plus") PROFILE="friendlyarm_nanopi-r2c-plus" ;;
-              "Nanopi-r2s") PROFILE="friendlyarm_nanopi-r2s" ;;
-              "Nanopi-r3s") PROFILE="friendlyarm_nanopi-r3s" ;;
-              "Nanopi-r4s") PROFILE="friendlyarm_nanopi-r4s" ;;
-              "Nanopi-r5s") PROFILE="friendlyarm_nanopi-r5s" ;;
-              "Widora Mangopi M28C") PROFILE="widora_mangopi-m28c" ;;
-              "Widora Mangopi M28K") PROFILE="widora_mangopi-m28k" ;;
-              "Orangepi Pc 2") PROFILE="xunlong_orangepi-pc2" ;;
-              "Orangepi R1 Plus") PROFILE="xunlong_orangepi-r1-plus" ;;
-              "Orangepi R1 Plus LTS") PROFILE="xunlong_orangepi-r1-plus-lts" ;;
-              "Raspberry Pi B") PROFILE="rpi" ;;
-              "Raspberry Pi 2B") PROFILE="rpi-2" ;;
-              "Raspberry Pi 3B") PROFILE="rpi-3" ;;
-              "Raspberry Pi 4B") PROFILE="rpi-4" ;;
-              "Raspberry Pi 5") PROFILE="rpi-5" ;;
-              "X86-64" | "X86-Generic") PROFILE="generic" ;;
-            esac
-          else
-            TARGET_NAME="armsr-armv8"; TARGET_SYSTEM="armsr/armv8"
-            ARCH_1="arm64"; ARCH_2="aarch64"; ARCH_3="aarch64_generic"
-            PROFILE="generic"
-            
-            case "$MATRIXTARGET" in
-              "Allwinner H5 Orangepi Zero Plus") KERNEL="6.6.6-AW64-DBAI"; TARGET_BUILD="h5-orangepi-zeroplus" ;;
-              "Allwinner H5 Orangepi Zero Plus2") KERNEL="6.6.6-AW64-DBAI"; TARGET_BUILD="h5-orangepi-zeroplus2" ;;
-              "Allwinner H6 Orangepi 3") KERNEL="6.1.31-AW64-DBAI"; TARGET_BUILD="h6-orangepi-3" ;;
-              "Allwinner H6 Orangepi 3 LTS") KERNEL="6.1.31-AW64-DBAI"; TARGET_BUILD="h6-orangepi-3lts" ;;
-              "Allwinner H616 Orangepi Zero2") KERNEL="6.1.31-AW64-DBAI"; TARGET_BUILD="h616-orangepi-zero2" ;;
-              "Allwinner H618 Orangepi Zero3") KERNEL="6.1.31-AW64-DBAI"; TARGET_BUILD="h618-orangepi-zero3" ;;
-              "Orangepi 3B") KERNEL="5.10.160-rk35v-dbai"; TARGET_BUILD="rk3566-orangepi-3b" ;;
-              "Amlogic B860Hv5 - 6.1.66") KERNEL="6.1.66-DBAI"; TARGET_BUILD="s905x2-b860hv5" ;;
-              "Amlogic B860Hv5 - 6.4.11") KERNEL="6.4.11"; TARGET_BUILD="s905x2-b860hv5" ;;
-              "Amlogic B860Hv5 - 6.2.2") KERNEL="6.2.2"; TARGET_BUILD="s905x2-b860hv5" ;;
-              "Amlogic HG680-FJ - 6.1.66") KERNEL="6.1.66-DBAI"; TARGET_BUILD="s905x2-hg680-fj" ;;
-              "Amlogic HG680-FJ - 6.4.11") KERNEL="6.4.11"; TARGET_BUILD="s905x2-hg680-fj" ;;
-              "Amlogic HG680-FJ - 6.2.2") KERNEL="6.2.2"; TARGET_BUILD="s905x2-hg680-fj" ;;
-              "Amlogic s905x4 - 6.1.66") KERNEL="6.1.66-DBAI"; TARGET_BUILD="s905x4" ;;
-              "Amlogic s905x4 - 5.4.279") KERNEL="5.4.279"; TARGET_BUILD="s905x4" ;;
-              "Amlogic s905x4 - 6.6.6") KERNEL="6.6.6"; TARGET_BUILD="s905x4" ;;
-              "Amlogic s905x4 - 5.4.265") KERNEL="5.4.265"; TARGET_BUILD="s905x4" ;;
-              "Amlogic s905 MXQ-Pro+") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905-mxqpro-plus" ;;
-              "Amlogic s905 Beelink-Mini") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905-beelink-mini" ;;
-              "Amlogic s905lb Q96-Mini") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905lb-q96-mini" ;;
-              "Amlogic s905w TX3-Mini") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905w" ;;
-              "Amlogic s905w X96-Mini") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905w-x96-mini" ;;
-              "Amlogic s905w X96W") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905w-x96w" ;;
-              "Amlogic s905x B860H WIFION" | "Amlogic s905x B860H WIFION MODSDCARD") KERNEL="5.15.y_6.1.y_6.6.y_6.12.y"; TARGET_BUILD="s905x-b860h-wifion" ;;
-              "Amlogic s905x HG680P WIFION" | "Amlogic s905x HG680P WIFION MODSDCARD") KERNEL="5.15.y_6.1.y_6.6.y_6.12.y"; TARGET_BUILD="s905x-wifion" ;;
-              "Amlogic s905x B860H WIFIOFF" | "Amlogic s905x B860H WIFIOFF MODSDCARD") KERNEL="6.1.y_6.6.y_6.12.y_6.18.y"; TARGET_BUILD="s905x-b860h" ;;
-              "Amlogic s905x HG680P WIFIOFF" | "Amlogic s905x HG680P WIFIOFF MODSDCARD") KERNEL="6.1.y_6.6.y_6.12.y_6.18.y"; TARGET_BUILD="s905x" ;;
-              "Amlogic s905x2 B860Hv5") KERNEL="6.1.y"; TARGET_BUILD="s905x2-b860hv5" ;;
-              "Amlogic s905x2 B860Hv5-v2") KERNEL="6.2.y_6.3.y_6.4.y"; TARGET_BUILD="s905x2-b860h-v5-v2" ;;
-              "Amlogic s905x2 HG680-FJ") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x2-hg680fj" ;;
-              "Amlogic s905x2 HG680-FJ-v2") KERNEL="6.2.y_6.4.y"; TARGET_BUILD="s905x2-hg680-fj-v2" ;;
-              "Amlogic s905x2 X96Max-v2Gb") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x2-x96max-2g" ;;
-              "Amlogic s905x2 X96Max-v4Gb") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x2" ;;
-              "Amlogic s905x3 HK1-Vontar-X3") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x3-hk1" ;;
-              "Amlogic s905x3 X96Air_100mb") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x3-x96air" ;;
-              "Amlogic s905x3 X96Air_1Gb") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x3-x96air-gb" ;;
-              "Amlogic s905x3 X96Max+_100Mb") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x3" ;;
-              "Amlogic s905x3 X96Max+_1Gb") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x3-x96max" ;;
-              "Amlogic s905x3 H96-Max-X3") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s905x3-h96max" ;;
-              "Amlogic s905x4 Advan-At01_Ax810") KERNEL="6.1.y_6.6.y"; TARGET_BUILD="s905x4-advan" ;;
-              "Amlogic s912 Nexbox-A1-A95X") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s912-nexbox-a1" ;;
-              "Amlogic s912 Nexbox-A95X-A2") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s912-nexbox-a2" ;;              
-              "Amlogic s912 T95Z-Plus") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s912-t95z-plus" ;;
-              "X98H-H618") KERNEL="6.18.y"; TARGET_BUILD="x98h" ;;
-              "Amlogic TX9-Pro 1Gb") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s912-tx9-pro-3g" ;;
-              "Amlogic TX9-Pro 100mb") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s912-tx9-pro-2g" ;;     
-              "Amlogic s922x GT-King-Pro") KERNEL="5.15.y_6.1.y_6.6.y"; TARGET_BUILD="s922x" ;;
-              "Tanix-TX6") KERNEL="6.1.y"; TARGET_BUILD="tanix-tx6" ;;
-              "Rk3318-BOX") KERNEL="5.15.y_6.1.y"; TARGET_BUILD="rk3318-box" ;;
-              "Firefly-Rk3328") KERNEL="5.15.y_6.1.y"; TARGET_BUILD="renegade-rk3328" ;;
-              "Rk3399 King3399") KERNEL="6.1.y"; TARGET_BUILD="king3399" ;;
-              "Orangepi 5 Plus") KERNEL="6.1.y"; TARGET_BUILD="orangepi-5-plus" ;;
-              "Orangepi 5B") KERNEL="6.1.y"; TARGET_BUILD="orangepi-5b" ;;
-              "H96-Max-M2") KERNEL="6.1.y"; TARGET_BUILD="h96-max-m2" ;;
-              "Nanopi-M5") KERNEL="6.12.y"; TARGET_BUILD="nanopi-m5" ;;
-              "Orangepi-Zero3") KERNEL="6.18.y"; TARGET_BUILD="orangepi-zero3" ;;
-            esac
-            
-            echo "TYPE=$(echo "$BUILDER_TYPE" | tr 'a-z' 'A-Z')" >> $GITHUB_ENV
-          fi
-
+          echo "TYPE=OPHUB" >> $GITHUB_ENV
           echo "BUILDER_TYPE=$BUILDER_TYPE" >> $GITHUB_ENV
           echo "TARGET_NAME=$TARGET_NAME" >> $GITHUB_ENV
           echo "TARGET_SYSTEM=$TARGET_SYSTEM" >> $GITHUB_ENV
@@ -650,7 +410,7 @@ jobs:
 
       - name: Modsdcard Devices
         id: modsdcard
-        if: (steps.build.outputs.status == 'success' && env.BUILDER_TYPE != 'official') || steps.repack.outputs.status == 'success'
+        if: steps.repack.outputs.status == 'success'
         run: |
           cd ${{ env.WORKING_DIR }}
           ./build-tools.sh modsdcard
@@ -684,7 +444,7 @@ jobs:
           if [ -d "/builder" ]; then sudo rm -rf /builder/*; fi
 
       - name: Clean Simulated Disk
-        if: always() && contains(inputs.target, 'all-devices')
+        if: always() && inputs.target == 'all-hg680p'
         run: |
           sudo umount /builder || true
           sudo lvremove -f /dev/github/runner || true

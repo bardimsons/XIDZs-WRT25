@@ -42,6 +42,7 @@ proxy-providers:
       enable: true
       url: https://www.gstatic.com/generate_204
       interval: 10
+      lazy: true
   MODEM2:
     type: file
     path: "./providers/proxy/modem2.yaml"
@@ -49,6 +50,7 @@ proxy-providers:
       enable: true
       url: https://www.gstatic.com/generate_204
       interval: 10
+      lazy: true
 proxy-groups:
   - name: MODEM1
     type: select
@@ -166,6 +168,9 @@ dns:
   fake-ip-filter:
     - "*.lan"
     - "*.local"
+    - "*.ntp.org"
+    - "time.*.com"
+    - "pool.ntp.org"
   respect-rules: true
   use-system-hosts: true
   default-nameserver:

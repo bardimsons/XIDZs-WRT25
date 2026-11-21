@@ -27,7 +27,7 @@ main() {
             BRANCH_VERSION=$(grep 'DISTRIB_DESCRIPTION=' "$RELEASE_FILE" | awk -F"'" '{print $2}')
             echo "OpenWrt detected - $BRANCH_VERSION"
         else
-            echo "WARNING" "Unknown system release."
+            echo "Unknown system release."
         fi
     else
         echo "$RELEASE_FILE not found, skipping OS check."
@@ -73,6 +73,8 @@ EOF
     # Network interface and firewall
     echo "Setting network and firewall."
     uci -q batch <<EOF
+set network.globals.packet_steering='1'
+set network.globals.steering_flows='256'
 set network.wan=interface
 set network.wan.proto='dhcp'
 set network.wan.device='eth1'
@@ -83,7 +85,16 @@ delete network.wan6
 set firewall.@zone[1].network='tethering wan'
 commit network
 commit firewall
+set dhcp.@dnsmasq[0].cachesize='4096'
+set dhcp.@dnsmasq[0].min_cache_ttl='60'
+commit dhcp
 EOF
+
+    # Enable BBR congestion control if supported by kernel
+    if grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
+        mkdir -p /etc/sysctl.d
+        echo "net.ipv4.tcp_congestion_control=bbr" > /etc/sysctl.d/99-bbr.conf
+    fi
 
     # USB Mode
     [ -f /etc/usb-mode.json ] && sed -i -e '/12d1:15c1/,+5d' -e '/413c:81d7/,+5d' /etc/usb-mode.json

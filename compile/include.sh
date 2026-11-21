@@ -165,7 +165,7 @@ ariadl() {
     while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
         log "INFO" "Fetching [Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES]: $URL"
         if [ -f "$OUTPUT_DIR/$OUTPUT_FILE" ]; then rm -f "$OUTPUT_DIR/$OUTPUT_FILE"; fi
-        if aria2c -q -d "$OUTPUT_DIR" -o "$OUTPUT_FILE" "$URL"; then
+        if aria2c -q -x 4 -s 4 --connect-timeout=15 --timeout=30 -d "$OUTPUT_DIR" -o "$OUTPUT_FILE" "$URL"; then
             return 0
         fi
         RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -178,6 +178,22 @@ ariadl() {
     return 1
 }
 
+declare -gA URL_CACHE=()
+
+# Fetch URL with in-memory cache to avoid redundant API/index requests
+fetch_url_cached() {
+    local url="$1"
+    local curl_opts=("${@:2}")
+    if [[ -v URL_CACHE["$url"] ]]; then
+        printf '%s' "${URL_CACHE[$url]}"
+        return 0
+    fi
+    local content
+    content=$(curl -sL "${curl_opts[@]}" "$url" 2>/dev/null || true)
+    URL_CACHE["$url"]="$content"
+    printf '%s' "$content"
+}
+
 # Fetch packages dynamically
 download_packages() {
     local -n package_list="$1"
@@ -188,7 +204,6 @@ download_packages() {
     # Process package list
     for entry in "${package_list[@]}"; do
         IFS="|" read -r raw_pkg_name base_url <<< "$entry"
-        unset IFS
         [[ -z "$raw_pkg_name" || -z "$base_url" ]] && continue
         
         # Detect architecture placeholder dynamically
@@ -229,7 +244,9 @@ download_packages() {
 
         # 2. GitHub API Releases
         elif [[ "$base_url" == *"api.github.com/repos/"*"/releases"* ]]; then
-            local file_urls=$(curl -sL "$base_url" | jq -r '.assets[].browser_download_url' 2>/dev/null || echo "")
+            local api_json file_urls=""
+            api_json=$(fetch_url_cached "$base_url")
+            file_urls=$(printf '%s' "$api_json" | jq -r '.assets[].browser_download_url' 2>/dev/null || true)
             download_url=$(filter_urls "$file_urls" "$pkg_ext")
             
             # Fallback to .ipk
@@ -239,8 +256,10 @@ download_packages() {
 
         # 3. Standard GitHub Release URL
         elif [[ "$base_url" == *"github.com/"*"/releases/latest"* ]]; then
-            local api_url=$(echo "$base_url" | sed 's|github.com|api.github.com/repos|' | sed 's|/releases/latest|/releases/latest|')
-            local file_urls=$(curl -sL "$api_url" | jq -r '.assets[].browser_download_url' 2>/dev/null || echo "")
+            local api_url api_json file_urls=""
+            api_url=$(echo "$base_url" | sed 's|github.com|api.github.com/repos|' | sed 's|/releases/latest|/releases/latest|')
+            api_json=$(fetch_url_cached "$api_url")
+            file_urls=$(printf '%s' "$api_json" | jq -r '.assets[].browser_download_url' 2>/dev/null || true)
             download_url=$(filter_urls "$file_urls" "$pkg_ext")
             
             if [[ -z "$download_url" && "$pkg_ext" == "apk" ]]; then
@@ -249,7 +268,9 @@ download_packages() {
 
         # 4. GitHub API Contents
         elif [[ "$base_url" == *"api.github.com/repos/"*"/contents/"* ]]; then
-            local file_urls=$(curl -sL "$base_url" | jq -r '.[].download_url' 2>/dev/null || echo "")
+            local api_json file_urls=""
+            api_json=$(fetch_url_cached "$base_url")
+            file_urls=$(printf '%s' "$api_json" | jq -r '.[].download_url' 2>/dev/null || true)
             download_url=$(filter_urls "$file_urls" "$pkg_ext")
             
             if [[ -z "$download_url" && "$pkg_ext" == "apk" ]]; then
@@ -258,13 +279,14 @@ download_packages() {
 
         # 5. Direct Web Scraper
         else
-            local page_content=$(curl -sL --max-time 30 --retry 4 --retry-delay 2 "$base_url" || echo "")
-            local file_urls=$(echo "$page_content" | grep -oE 'href="[^"]+\.'${pkg_ext}'"' | sed 's/href="//;s/"//' || true)
+            local page_content file_urls=""
+            page_content=$(fetch_url_cached "$base_url" --max-time 30 --retry 4 --retry-delay 2)
+            file_urls=$(printf '%s' "$page_content" | grep -oE 'href="[^"]+\.'${pkg_ext}'"' | sed 's/href="//;s/"//' || true)
             download_url=$(filter_urls "$file_urls" "$pkg_ext")
             
             # Fallback to .ipk
             if [[ -z "$download_url" && "$pkg_ext" == "apk" ]]; then
-                file_urls=$(echo "$page_content" | grep -oE 'href="[^"]+\.ipk"' | sed 's/href="//;s/"//' || true)
+                file_urls=$(printf '%s' "$page_content" | grep -oE 'href="[^"]+\.ipk"' | sed 's/href="//;s/"//' || true)
                 download_url=$(filter_urls "$file_urls" "ipk")
             fi
             

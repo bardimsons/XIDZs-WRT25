@@ -1,0 +1,35 @@
+#!/bin/sh
+# RPS/RFS/XPS hotplug tuning for Amlogic S905X (HG680P)
+[ "$ACTION" = "add" ] || return 0
+[ -n "$INTERFACE" ] || return 0
+
+case "$INTERFACE" in
+    lo|br-*|tun*|utun*|tap*|veth*|docker*|nikki*|mihomo*) return 0 ;;
+esac
+
+[ -d "/sys/class/net/$INTERFACE/queues" ] || return 0
+
+ncpu=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null)
+[ -n "$ncpu" ] && [ "$ncpu" -gt 1 ] 2>/dev/null || return 0
+
+mask=$(awk -v n="$ncpu" 'BEGIN { printf "%x", (2^n) - 1 }')
+[ -n "$mask" ] || return 0
+
+for q in /sys/class/net/"$INTERFACE"/queues/rx-*; do
+    [ -d "$q" ] || continue
+    if [ -w "$q/rps_cpus" ]; then
+        cur=$(cat "$q/rps_cpus" 2>/dev/null)
+        [ -z "$cur" ] || [ "$cur" = "0" ] || [ "$cur" = "00" ] && echo "$mask" > "$q/rps_cpus" 2>/dev/null
+    fi
+    if [ -w "$q/rps_flow_cnt" ]; then
+        echo 4096 > "$q/rps_flow_cnt" 2>/dev/null
+    fi
+done
+
+for q in /sys/class/net/"$INTERFACE"/queues/tx-*; do
+    [ -d "$q" ] || continue
+    if [ -w "$q/xps_cpus" ]; then
+        cur=$(cat "$q/xps_cpus" 2>/dev/null)
+        [ -z "$cur" ] || [ "$cur" = "0" ] || [ "$cur" = "00" ] && echo "$mask" > "$q/xps_cpus" 2>/dev/null
+    fi
+done

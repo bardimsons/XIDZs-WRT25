@@ -71,6 +71,8 @@ EOF
     # Network interface and firewall
     echo "Setting network and firewall."
     uci -q batch <<EOF
+set network.globals.packet_steering='1'
+set network.globals.steering_flows='256'
 set network.wan=interface
 set network.wan.proto='dhcp'
 set network.wan.device='eth1'
@@ -81,7 +83,16 @@ delete network.wan6
 set firewall.@zone[1].network='tethering wan'
 commit network
 commit firewall
+set dhcp.@dnsmasq[0].cachesize='4096'
+set dhcp.@dnsmasq[0].min_cache_ttl='60'
+commit dhcp
 EOF
+
+    # Enable BBR congestion control if supported by kernel
+    if grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
+        mkdir -p /etc/sysctl.d
+        echo "net.ipv4.tcp_congestion_control=bbr" > /etc/sysctl.d/99-bbr.conf
+    fi
 
     # WLAN
     if [ -d "/sys/class/ieee80211" ] && [ "$(ls -A /sys/class/ieee80211 2>/dev/null)" ]; then
@@ -119,7 +130,7 @@ set wireless.@wifi-device[0].htmode='VHT80'
 EOF
                 # Auto-restart wifi
                 if iw dev | grep -q "Interface"; then
-                    grep -q "wifi up" /etc/rc.local || sed -i '/exit 0/i sleep 10 && wifi up' /etc/rc.local
+                    grep -q "wifi up" /etc/rc.local || sed -i '/exit 0/i (sleep 10 && wifi up) &' /etc/rc.local
                     grep -q "wifi up" /etc/crontabs/root || echo "0 */12 * * * wifi down && sleep 5 && wifi up" >> /etc/crontabs/root
                 fi
             else

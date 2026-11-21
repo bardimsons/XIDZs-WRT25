@@ -41,14 +41,16 @@ proxy-providers:
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
-      interval: 120
+      interval: 300
+      lazy: true
   MIX:
     type: file
     path: "./providers/proxy/mix.yaml"
     health-check:
       enable: true
       url: https://www.gstatic.com/generate_204
-      interval: 120
+      interval: 300
+      lazy: true
 proxy-groups:
   - name: AUTO-ID-MIX
     type: fallback
@@ -57,7 +59,7 @@ proxy-groups:
       - ID
       - MIX
     url: https://www.gstatic.com/generate_204
-    interval: 120
+    interval: 300
   - name: LB-MIX-ID
     type: load-balance
     strategy: consistent-hashing
@@ -66,7 +68,7 @@ proxy-groups:
       - MIX
       - ID
     url: https://www.gstatic.com/generate_204
-    interval: 120
+    interval: 300
   - name: SERVER-UMUM
     type: select
     disable-udp: false
@@ -150,6 +152,9 @@ dns:
   fake-ip-filter:
     - "*.lan"
     - "*.local"
+    - "*.ntp.org"
+    - "time.*.com"
+    - "pool.ntp.org"
   respect-rules: true
   use-system-hosts: true
   default-nameserver:

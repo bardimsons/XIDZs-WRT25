@@ -20,7 +20,7 @@ tcp-concurrent: true
 unified-delay: true
 tun:
   enable: false
-  stack: gvisor
+  stack: mixed
   device: Meta
   dns-hijack:
     - any:53
@@ -70,7 +70,8 @@ proxy-providers:
     health-check:
       enable: true
       url: http://www.gstatic.com/generate_204
-      interval: 120
+      interval: 300
+      lazy: true
 proxy-groups:
   - name: AUTO-MIX
     type: fallback
@@ -78,7 +79,7 @@ proxy-groups:
     use:
       - MIX
     url: http://www.gstatic.com/generate_204
-    interval: 120
+    interval: 300
   - name: SERVER-UMUM
     type: select
     disable-udp: false
