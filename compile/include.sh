@@ -198,7 +198,7 @@ fetch_url_cached() {
         auth_args=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
     fi
     content=$(curl -sL "${auth_args[@]}" "${curl_opts[@]}" "$url" 2>/dev/null || true)
-    printf '%s' "$content" > "$cache_file"
+    [ -n "$content" ] && printf '%s' "$content" > "$cache_file"
     printf '%s' "$content"
 }
 

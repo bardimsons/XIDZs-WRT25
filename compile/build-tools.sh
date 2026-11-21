@@ -761,7 +761,6 @@ run_makeimage() {
         if [[ "${ARCH_2:-}" == "x86_64" ]] || [[ "${ARCH_2:-}" == "i386" ]]; then EXCLUDED+=" -kmod-usb-net-rtl8152-vendor "; fi
     fi
     
-    make info
     make image PROFILE="$target_profile" \
                PACKAGES="$PACKAGES $EXCLUDED" \
                FILES="$build_files" \
