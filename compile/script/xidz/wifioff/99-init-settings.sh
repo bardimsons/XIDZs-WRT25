@@ -46,6 +46,8 @@ main() {
         sed -i 's/option check_signature/# option check_signature/g' /etc/opkg.conf
         echo "src/gz custom_packages https://dl.openwrt.ai/packages-${os_ver}/${arch}/kiddin9/" >> /etc/opkg/customfeeds.conf
         echo "Custom repo integrated."
+    elif [ -d /etc/apk ]; then
+        echo "apk-based system detected, skipping opkg repo setup."
     else
         echo "opkg.conf not found. Skipping."
     fi
@@ -75,22 +77,42 @@ EOF
     uci -q batch <<EOF
 set network.globals.packet_steering='2'
 set network.globals.steering_flows='4096'
+delete network.globals.ula_prefix
+set network.lan.delegate='0'
+delete network.lan.ip6assign
 set network.wan=interface
 set network.wan.proto='dhcp'
 set network.wan.device='eth1'
+set network.wan.peerdns='0'
+delete network.wan.dns
+add_list network.wan.dns='1.1.1.1'
+add_list network.wan.dns='8.8.8.8'
 set network.tethering=interface
 set network.tethering.proto='dhcp'
 set network.tethering.device='usb0'
+set network.tethering.peerdns='0'
+delete network.tethering.dns
+add_list network.tethering.dns='1.1.1.1'
+add_list network.tethering.dns='8.8.8.8'
 delete network.wan6
-set firewall.@zone[1].network='tethering wan'
+delete firewall.@zone[1].network
+add_list firewall.@zone[1].network='tethering'
+add_list firewall.@zone[1].network='wan'
+add_list firewall.@zone[1].network='modem'
+add_list firewall.@zone[1].network='mm'
 set firewall.@zone[1].mtu_fix='1'
 commit network
 commit firewall
 set dhcp.@dnsmasq[0].cachesize='4096'
 set dhcp.@dnsmasq[0].min_cache_ttl='60'
 set dhcp.@dnsmasq[0].filter_aaaa='1'
+set dhcp.lan.ra='disabled'
+set dhcp.lan.dhcpv6='disabled'
+set dhcp.lan.ndp='disabled'
 commit dhcp
 EOF
+    /etc/init.d/odhcpd disable 2>/dev/null || true
+    /etc/init.d/odhcpd stop 2>/dev/null || true
 
     # Unload unused 8189fs WiFi module on WIFIOFF targets
     grep -q "rmmod 8189fs" /etc/rc.local || sed -i '/exit 0/i rmmod 8189fs 2>/dev/null || true' /etc/rc.local

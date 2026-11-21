@@ -18,7 +18,6 @@ misc_permissions() {
             "files/lib/netifd/proto/dhcpv6.sh" 
             "files/lib/netifd/proto/ncm.sh" 
             "files/lib/netifd/proto/wwan.sh"
-            "files/lib/netifd/wireless/mac80211.sh" 
             "files/lib/netifd/dhcp-get-server.sh" 
             "files/lib/netifd/dhcp.script"
             "files/lib/netifd/dhcpv6.script" 
@@ -26,7 +25,6 @@ misc_permissions() {
             "files/lib/netifd/netifd-proto.sh"
             "files/lib/netifd/netifd-wireless.sh" 
             "files/lib/netifd/utils.sh" 
-            "files/lib/wifi/mac80211.sh"
         )
         for f in "${files[@]}"; do [ -f "$f" ] && chmod 755 "$f"; done
     else

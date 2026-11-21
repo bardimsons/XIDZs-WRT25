@@ -17,7 +17,7 @@ config nodes 'b922c50dd2c34c98b65bea495c9c0693'
 
 config global
 	option socks_enabled '0'
-	option dns_mode 'pdnsd'
+	option dns_mode 'chinadns-ng'
 	option localhost_tcp_proxy_mode 'default'
 	option localhost_udp_proxy_mode 'default'
 	option close_log_tcp '0'
