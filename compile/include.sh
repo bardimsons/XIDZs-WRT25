@@ -193,8 +193,11 @@ fetch_url_cached() {
         return 0
     fi
     mkdir -p "$URL_CACHE_DIR"
-    local content
-    content=$(curl -sL "${curl_opts[@]}" "$url" 2>/dev/null || true)
+    local content auth_args=()
+    if [[ "$url" == https://api.github.com/* && -n "${GITHUB_TOKEN:-}" ]]; then
+        auth_args=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+    fi
+    content=$(curl -sL "${auth_args[@]}" "${curl_opts[@]}" "$url" 2>/dev/null || true)
     printf '%s' "$content" > "$cache_file"
     printf '%s' "$content"
 }

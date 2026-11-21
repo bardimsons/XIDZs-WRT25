@@ -81,13 +81,13 @@ set network.tethering.proto='dhcp'
 set network.tethering.device='usb0'
 delete network.wan6
 set firewall.@zone[1].network='tethering wan'
+set firewall.@zone[1].mtu_fix='1'
 commit network
 commit firewall
 set dhcp.@dnsmasq[0].cachesize='4096'
 set dhcp.@dnsmasq[0].min_cache_ttl='60'
+set dhcp.@dnsmasq[0].filter_aaaa='1'
 commit dhcp
-set irqbalance.irqbalance.enabled='1'
-commit irqbalance
 EOF
 
     # Set CPU governor to schedutil and persist across reboots

@@ -14,4 +14,4 @@
 # Network stats every 5m
 # RAM cleanup disabled by default (periodic drop_caches hurts latency and cache hit rate)
 #0 */10 * * * /sbin/free.sh >/dev/null 2>&1
-*/5 * * * * /www/netmonitor/vnstati/vnstati.sh >/dev/null 2>&1
+*/15 * * * * /www/netmonitor/vnstati/vnstati.sh >/dev/null 2>&1

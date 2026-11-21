@@ -9,6 +9,13 @@ esac
 
 [ -d "/sys/class/net/$INTERFACE/queues" ] || return 0
 
+# Reduce cellular upload bufferbloat on USB/WWAN modems
+case "$INTERFACE" in
+    wwan*|usb*|qmimux*)
+        ip link set dev "$INTERFACE" txqueuelen 150 2>/dev/null || true
+        ;;
+esac
+
 ncpu=$(grep -c '^processor' /proc/cpuinfo 2>/dev/null)
 [ -n "$ncpu" ] && [ "$ncpu" -gt 1 ] 2>/dev/null || return 0
 

@@ -135,6 +135,7 @@ misc_file_perms() {
     local conf_files=( 
         "files/etc/crontabs/root"
         "files/etc/hotplug.d/net/30-rfs-tuning"
+        "files/etc/hotplug.d/usb/20-modem-no-autosuspend"
         "files/etc/rc.local"
         "files/etc/sysctl.conf"
     )
@@ -409,8 +410,8 @@ run_tunnel() {
     
     setup_openclash() {
         local oc_core oc_ipk
-        oc_core=$(curl -sL "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -oE "https.*${meta_file}-v[0-9]+\.[0-9]+\.[0-9]+\.gz" | head -n 1 || true)
-        oc_ipk=$(curl -sL "https://api.github.com/repos/Yogxx/OpenClash/releases" | jq -r '.[0].assets[].browser_download_url' 2>/dev/null | grep -iE "luci-app-openclash.*\.${pkg_ext}$" | head -n 1 || true)
+        oc_core=$(fetch_url_cached "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -oE "https.*${meta_file}-v[0-9]+\.[0-9]+\.[0-9]+\.gz" | head -n 1 || true)
+        oc_ipk=$(fetch_url_cached "https://api.github.com/repos/Yogxx/OpenClash/releases" | jq -r '.[0].assets[].browser_download_url' 2>/dev/null | grep -iE "luci-app-openclash.*\.${pkg_ext}$" | head -n 1 || true)
         [[ -z "$oc_core" || -z "$oc_ipk" ]] && { log "ERROR" "OpenClash URL not found"; return 1; }
         
         local clean_name=$(basename "${oc_ipk}" | sed -E 's/^[0-9\.\+\-_]+luci-app/luci-app/')
@@ -457,7 +458,7 @@ run_tunnel() {
         [[ "$nikki_ver" == "23.05" ]] && nikki_ver="24.10"
         
         local nikki_url
-        nikki_url=$(curl -sL "https://api.github.com/repos/Yogxx/OpenWrt-nikkiku/releases" | jq -r '.[0].assets[].browser_download_url' 2>/dev/null | grep -oE "https.*nikki_${ARCH_3}-openwrt-${nikki_ver}.*\.tar.gz" | head -n 1 || true)
+        nikki_url=$(fetch_url_cached "https://api.github.com/repos/Yogxx/OpenWrt-nikkiku/releases" | jq -r '.[0].assets[].browser_download_url' 2>/dev/null | grep -oE "https.*nikki_${ARCH_3}-openwrt-${nikki_ver}.*\.tar.gz" | head -n 1 || true)
         [[ -z "$nikki_url" ]] && { log "ERROR" "Nikki URL not found"; return 1; }
         
         local n_file=$(basename "${nikki_url}")
@@ -491,7 +492,7 @@ run_tunnel() {
     setup_qtun() {
         local qtun_search="luci-app-qtun_.*_${ARCH_3}\.${pkg_ext}$"
         local qtun_url
-        qtun_url=$(curl -sL "https://api.github.com/repos/de-quenx/luci-app-qtun/releases/latest" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "${qtun_search}" | head -n 1 || true)
+        qtun_url=$(fetch_url_cached "https://api.github.com/repos/de-quenx/luci-app-qtun/releases/latest" | jq -r '.assets[].browser_download_url' 2>/dev/null | grep -iE "${qtun_search}" | head -n 1 || true)
         [[ -z "$qtun_url" ]] && { log "ERROR" "Qtun URL not found"; return 1; }
         
         local clean_name=$(basename "${qtun_url}" | sed -E "s/_${ARCH_3}//")
@@ -639,7 +640,7 @@ run_makeimage() {
     log "INFO" "Starting ImageBuilder for: $target_profile [Tunnel: ${tunnel_option:-none}]"
     
     # Base system & LuCI
-    PACKAGES+=" dnsmasq-full libc block-mount zram-swap zoneinfo-core zoneinfo-asia bash screen uhttpd uhttpd-mod-ubus irqbalance \
+    PACKAGES+=" dnsmasq-full libc block-mount zram-swap zoneinfo-core zoneinfo-asia bash screen uhttpd uhttpd-mod-ubus \
     luci luci-ssl luci-base luci-compat luci-mod-admin-full luci-mod-network \
     luci-mod-system luci-mod-status luci-app-firewall luci-app-opkg openssh-sftp-server adb curl wget-ssl \
     httping htop jq tar unzip coreutils-base64 coreutils-sleep coreutils-stat coreutils-stty "

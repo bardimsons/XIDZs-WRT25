@@ -3,4 +3,10 @@
 #sleep 7 && /usr/bin/x-gpio -r
 #sleep 7 && /sbin/free.sh
 #/sbin/jam bug.com
+# Pin eth0 (CPU3) and USB1 xHCI modem (CPU2) IRQs off CPU0
+for pair in "eth0:8" "xhci-hcd:usb1:4"; do
+    dev="${pair%:*}"; mask="${pair##*:}"
+    irq=$(awk -v d="$dev" '$NF==d {gsub(/:/,"",$1); print $1; exit}' /proc/interrupts)
+    [ -n "$irq" ] && [ -w "/proc/irq/$irq/smp_affinity" ] && echo "$mask" > "/proc/irq/$irq/smp_affinity"
+done
 exit 0

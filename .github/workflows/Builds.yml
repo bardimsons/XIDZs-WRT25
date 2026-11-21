@@ -200,6 +200,7 @@ jobs:
     needs: prebuild
     runs-on: ubuntu-24.04
     env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       BASE: ${{ needs.prebuild.outputs.base }}
       BRANCH: ${{ needs.prebuild.outputs.branch }}
       VEROP: ${{ needs.prebuild.outputs.verop }}
@@ -210,7 +211,7 @@ jobs:
       RELEASE_TAG: ${{ needs.prebuild.outputs.release_tag }}
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 4
       matrix:
         target: ${{ fromJSON(needs.prebuild.outputs.target) }}
 
