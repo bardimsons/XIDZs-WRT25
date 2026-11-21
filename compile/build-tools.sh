@@ -44,18 +44,28 @@ misc_permissions() {
     fi
 }
 
-# Download CLI scripts
+# Copy CLI scripts
 misc_download_scripts() {
-    log "INFO" "Downloading CLI scripts"
+    log "INFO" "Copying CLI scripts"
+    local script_dir="script"
+    [ ! -d "$script_dir" ] && [ -d "../script" ] && script_dir="../script"
     local scripts=(
-        "https://raw.githubusercontent.com/syntax-xidz/contenx/main/xcli/syntax|files/usr/bin"
-        "https://raw.githubusercontent.com/syntax-xidz/contenx/main/xcli/x-gpio|files/usr/bin"
-        "https://raw.githubusercontent.com/syntax-xidz/contenx/main/xcli/xidz|files/usr/bin"
-        "https://raw.githubusercontent.com/syntax-xidz/contenx/main/xcli/xdev|files/usr/bin"
-        "https://raw.githubusercontent.com/syntax-xidz/contenx/main/xcli/x-gpioled|files/usr/bin"
-        "https://raw.githubusercontent.com/syntax-xidz/contenx/main/xcli/xidzs|files/etc/init.d"
+        "${script_dir}/xcli/syntax|files/usr/bin"
+        "${script_dir}/xcli/x-gpio|files/usr/bin"
+        "${script_dir}/xcli/xidz|files/usr/bin"
+        "${script_dir}/xcli/xdev|files/usr/bin"
+        "${script_dir}/xcli/x-gpioled|files/usr/bin"
+        "${script_dir}/xcli/xidzs|files/etc/init.d"
     )
-    for s in "${scripts[@]}"; do IFS='|' read -r url path <<< "$s"; mkdir -p "$path"; wget --no-check-certificate -nv -P "$path" "$url" || log "WARN" "Download failed: $url"; done
+    for s in "${scripts[@]}"; do
+        IFS='|' read -r src path <<< "$s"
+        mkdir -p "$path"
+        if [ -f "$src" ]; then
+            cp -f "$src" "$path/" || log "WARN" "Copy failed: $src"
+        else
+            log "WARN" "Script not found: $src"
+        fi
+    done
 }
 
 # Download QModem
@@ -145,16 +155,18 @@ misc_file_perms() {
 # Configure base scripts
 misc_base_config() {
     local uci_dir="files/etc/uci-defaults"
+    local script_dir="script"
+    [ ! -d "$script_dir" ] && [ -d "../script" ] && script_dir="../script"
 
     # Create UCI directory
     [ ! -d "$uci_dir" ] && mkdir -p "$uci_dir"
 
     if [[ "${TARGET_BUILD:-}" == "s905x-b860h" || "${TARGET_BUILD:-}" == "s905x" ]]; then
         log "INFO" "WIFIOFF target detected"
-        wget --no-check-certificate -q -O "$uci_dir/99-init-settings.sh" "https://raw.githubusercontent.com/syntax-xidz/contenx/main/xidz/wifioff/99-init-settings.sh" || log "WARN" "WIFIOFF init script failed"
+        cp -f "${script_dir}/xidz/wifioff/99-init-settings.sh" "$uci_dir/99-init-settings.sh" || log "WARN" "WIFIOFF init script failed"
     else
         log "INFO" "Standard target detected"
-        wget --no-check-certificate -q -O "$uci_dir/99-init-settings.sh" "https://raw.githubusercontent.com/syntax-xidz/contenx/main/xidz/wifion/99-init-settings.sh" || log "WARN" "Standard init script failed"
+        cp -f "${script_dir}/xidz/wifion/99-init-settings.sh" "$uci_dir/99-init-settings.sh" || log "WARN" "Standard init script failed"
     fi
 
     log "INFO" "Base system configured: ${BASE}"
