@@ -156,7 +156,7 @@ env:
 jobs:
   auth:
     name: auth Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: auth
         env:
@@ -197,7 +197,7 @@ jobs:
   prebuild:
     needs: auth
     if: inputs.tunnel != 'all-tunnel-v2' && inputs.tunnel != 'all-tunnel-v1'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Setup ${{ inputs.release_branch }}
     outputs:
       target: ${{ steps.set-matrix.outputs.target }}
@@ -315,7 +315,7 @@ jobs:
     if: inputs.tunnel != 'all-tunnel-v2' && inputs.tunnel != 'all-tunnel-v1'
     name: Build ${{ matrix.target }}
     needs: prebuild
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       BASE: ${{ needs.prebuild.outputs.base }}
       BRANCH: ${{ needs.prebuild.outputs.branch }}
