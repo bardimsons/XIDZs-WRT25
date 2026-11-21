@@ -73,8 +73,8 @@ EOF
     # Network interface and firewall
     echo "Setting network and firewall."
     uci -q batch <<EOF
-set network.globals.packet_steering='1'
-set network.globals.steering_flows='256'
+set network.globals.packet_steering='2'
+set network.globals.steering_flows='4096'
 set network.wan=interface
 set network.wan.proto='dhcp'
 set network.wan.device='eth1'
@@ -115,7 +115,10 @@ EOF
 
     # UI & Tinyfm
     echo "Applying UI mods (tinyfm)."
-    [ -d /www/tinyfm ] && ln -sf / /www/tinyfm/rootfs
+    if [ -d /www/tinyfm ]; then
+        ln -sfn / /www/tinyfm/rootfs
+        [ -d /etc/openclash ] && ln -sfn /etc/openclash /www/tinyfm/openclash
+    fi
     
     # LuCI
     inc="/www/luci-static/resources/view/status/include"

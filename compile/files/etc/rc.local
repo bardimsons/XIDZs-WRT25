@@ -9,4 +9,5 @@ for pair in "eth0:8" "xhci-hcd:usb1:4"; do
     irq=$(awk -v d="$dev" '$NF==d {gsub(/:/,"",$1); print $1; exit}' /proc/interrupts)
     [ -n "$irq" ] && [ -w "/proc/irq/$irq/smp_affinity" ] && echo "$mask" > "/proc/irq/$irq/smp_affinity"
 done
+tc qdisc replace dev eth0 root fq_codel 2>/dev/null || true
 exit 0

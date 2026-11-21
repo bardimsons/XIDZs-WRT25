@@ -71,8 +71,8 @@ EOF
     # Network interface and firewall
     echo "Setting network and firewall."
     uci -q batch <<EOF
-set network.globals.packet_steering='1'
-set network.globals.steering_flows='256'
+set network.globals.packet_steering='2'
+set network.globals.steering_flows='4096'
 set network.wan=interface
 set network.wan.proto='dhcp'
 set network.wan.device='eth1'
@@ -109,8 +109,9 @@ EOF
     if [ -d "/sys/class/ieee80211" ] && [ "$(ls -A /sys/class/ieee80211 2>/dev/null)" ]; then
         echo "WLAN hardware detected."
         
-        # Wait max 6s for config
-        local timeout=6
+        # Trigger wireless config generation if missing and wait max 12s
+        [ ! -f /etc/config/wireless ] && wifi config 2>/dev/null || true
+        local timeout=12
         local count=0
         while [ ! -f /etc/config/wireless ] || ! uci -q get wireless.@wifi-device[0] >/dev/null 2>&1; do
             sleep 1
@@ -152,7 +153,10 @@ EOF
 
     # UI & Tinyfm
     echo "Applying UI mods (tinyfm)."
-    [ -d /www/tinyfm ] && ln -sf / /www/tinyfm/rootfs
+    if [ -d /www/tinyfm ]; then
+        ln -sfn / /www/tinyfm/rootfs
+        [ -d /etc/openclash ] && ln -sfn /etc/openclash /www/tinyfm/openclash
+    fi
     
     # LuCI
     inc="/www/luci-static/resources/view/status/include"
