@@ -151,6 +151,27 @@ EOF
             mv "$inc/29_ports.js" "$inc/11_ports.js"
         fi
     fi
+
+    # NetMonitor: cache-busting, protocol-relative iframe, and HG680P interfaces
+    if [ -f /usr/lib/lua/luci/view/netmonitor.htm ]; then
+        sed -i 's|"http://" + window\.location\.hostname + "/netmonitor/index\.html"|"/netmonitor/index.html?v=" + Date.now()|g' /usr/lib/lua/luci/view/netmonitor.htm
+    fi
+    if [ -f /www/netmonitor/index.html ]; then
+        sed -i 's|<script src="script\.js"></script>|<script src="script.js?v=1.4.0"></script>|g' /www/netmonitor/index.html
+    fi
+    if [ -f /www/netmonitor/script.js ]; then
+        grep -q "'eth0'" /www/netmonitor/script.js || sed -i "s|'br-lan','eth1'|'br-lan','eth0','eth1'|g; s|'wwan0','wwan1'|'phy0-ap0','wwan0','wwan1'|g" /www/netmonitor/script.js
+    fi
+    if uci -q get netmonitor.main >/dev/null 2>&1; then
+        uci -q batch <<'NMEOF'
+delete netmonitor.main.iface
+add_list netmonitor.main.iface='br-lan'
+add_list netmonitor.main.iface='eth0'
+add_list netmonitor.main.iface='wwan0'
+add_list netmonitor.main.iface='usb0'
+commit netmonitor
+NMEOF
+    fi
     
     # Disable apk-cheatsheet (OS 25.12+)
     [ -f /etc/profile.d/apk-cheatsheet.sh ] && mv -f /etc/profile.d/apk-cheatsheet.sh /etc/profile.d/apk-cheatsheet.bak
