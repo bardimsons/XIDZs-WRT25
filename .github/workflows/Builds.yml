@@ -330,7 +330,7 @@ jobs:
 
       - name: Cache ImageBuilder Packages
         if: steps.download.outputs.status == 'success'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.WORKING_DIR }}/dl
           key: ib-dl-${{ inputs.release_branch }}-${{ inputs.tunnel }}-${{ hashFiles('origin/compile/build-tools.sh') }}
