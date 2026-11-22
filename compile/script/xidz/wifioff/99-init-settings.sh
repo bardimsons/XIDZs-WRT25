@@ -126,8 +126,10 @@ EOF
     fi
 
     # Enable BBR congestion control if supported by kernel
+    modprobe tcp_bbr 2>/dev/null || true
     if grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
-        mkdir -p /etc/sysctl.d
+        mkdir -p /etc/modules.d /etc/sysctl.d
+        echo "tcp_bbr" > /etc/modules.d/99-tcp-bbr
         echo "net.ipv4.tcp_congestion_control=bbr" > /etc/sysctl.d/99-bbr.conf
         sysctl -w net.ipv4.tcp_congestion_control=bbr >/dev/null 2>&1 || true
     fi
