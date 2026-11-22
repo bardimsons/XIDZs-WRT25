@@ -14,7 +14,8 @@ if [ -n "$1" ]; then
         exit 1
     fi
 else
-    root_device=$(blkid -L rootfs -o device)
+    root_device=$(awk '$2 == "/" && $1 ~ "^/dev/" && $1 != "/dev/root" {print $1; exit}' /proc/mounts)
+    [ -z "$root_device" ] && root_device=$(blkid -L rootfs -o device 2>/dev/null)
 fi
 
 if [ -z "$root_device" ]; then
@@ -22,30 +23,39 @@ if [ -z "$root_device" ]; then
     exit 1
 fi
 
-ro_status=$(mount | awk '/\/dev\/root/ && /ro,/ {print $6}' | grep -o 'ro' | head -n 1)
+root_fstype=$(awk '$2 == "/" {print $3; exit}' /proc/mounts)
+ro_status=$(awk '$2 == "/" && $4 ~ /(^|,)ro(,|$)/ {print "ro"; exit}' /proc/mounts)
 
 if [ "$ro_status" = "ro" ]; then
-    _echo notice "Detected root file system: $root_device"
+    _echo notice "Detected root file system: $root_device ($root_fstype)"
     _echo notice "The file system is currently read-only. Initiating repair..."
 
-    if e2fsck -y "$root_device"; then
-        _echo notice "File system repair successful."
-        _echo notice "Mounting $root_device to read-write"
-        mount -o remount,rw "$root_device" /
-        _echo notice "Rebooting the system..."
-        reboot
-        if [ $? -ne 0 ]; then
-            _echo err "Reboot command failed. Please try force reboot if necessary using reboot -f"
-        fi
-    else
-        _echo notice "An error occurred while repairing the file system."
-        _echo notice "Trying to reboot if possible"
-        _echo notice "please try force reboot if nothing happen using reboot -f"
-        reboot
-        if [ $? -ne 0 ]; then
-            _echo err "Reboot command failed. Please try force reboot if necessary using reboot -f"
-        fi
-    fi
+    case "$root_fstype" in
+        ext2|ext3|ext4)
+            if e2fsck -y "$root_device"; then
+                _echo notice "File system repair successful."
+                _echo notice "Mounting $root_device to read-write"
+                mount -o remount,rw "$root_device" /
+            else
+                _echo notice "An error occurred while repairing the file system."
+            fi
+            ;;
+        btrfs)
+            _echo notice "Btrfs root mounted read-only; attempting read-write remount..."
+            if mount -o remount,rw "$root_device" / || mount -o remount,rw /; then
+                _echo notice "Btrfs root remounted read-write."
+            else
+                _echo err "Failed to remount btrfs root read-write."
+            fi
+            ;;
+        *)
+            _echo err "Unsupported root filesystem '$root_fstype' on $root_device for automatic repair."
+            exit 1
+            ;;
+    esac
+
+    _echo notice "Rebooting the system..."
+    reboot || _echo err "Reboot command failed. Please try force reboot if necessary using reboot -f"
 else
-    _echo notice "Root file system device '$root_device' is currently in read-write mode."
+    _echo notice "Root file system device '$root_device' ($root_fstype) is currently in read-write mode."
 fi

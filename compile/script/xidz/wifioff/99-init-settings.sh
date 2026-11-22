@@ -111,6 +111,10 @@ set dhcp.lan.dhcpv6='disabled'
 set dhcp.lan.ndp='disabled'
 commit dhcp
 EOF
+    if uci -q get network.modem >/dev/null 2>&1; then
+        uci set network.modem.peerdns='0'
+        uci commit network
+    fi
     /etc/init.d/odhcpd disable 2>/dev/null || true
     /etc/init.d/odhcpd stop 2>/dev/null || true
 

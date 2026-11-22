@@ -748,7 +748,7 @@ run_makeimage() {
     
     # ImageBuilder config exception
     if [[ "${TYPE:-}" == "OPHUB" ]] || [[ "${TYPE:-}" == "ULO" ]]; then
-        PACKAGES+=" btrfs-progs kmod-fs-btrfs luci-app-amlogic "
+        PACKAGES+=" btrfs-progs kmod-fs-btrfs luci-app-amlogic perlbase-essential perlbase-file "
         EXCLUDED+=" -procd-ujail "
     fi
     
