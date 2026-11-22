@@ -196,6 +196,20 @@ EOF
     fi
     if [ -f /www/netmonitor/index.html ]; then
         sed -i 's|<script src="script\.js"></script>|<script src="script.js?v=1.4.0"></script>|g' /www/netmonitor/index.html
+        if ! grep -q '#systemGrid' /www/netmonitor/index.html; then
+            awk '/<\/style>/ && !done {
+                print "@media (min-width: 640px) {"
+                print "  .slider-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 12px; justify-content: stretch; overflow-x: visible; padding-bottom: 0; }"
+                print "  #systemGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }"
+                print "  .slider-item { flex: none; min-width: 0; }"
+                print "}"
+                print "@media (min-width: 960px) {"
+                print "  #systemGrid { grid-template-columns: repeat(6, minmax(0, 1fr)); }"
+                print "  #systemGrid .panel-title { font-size: 0.72rem; white-space: nowrap; }"
+                print "}"
+                done=1
+            } { print }' /www/netmonitor/index.html > /tmp/nm_idx.html && mv /tmp/nm_idx.html /www/netmonitor/index.html
+        fi
     fi
     if [ -f /www/netmonitor/script.js ]; then
         grep -q "'eth0'" /www/netmonitor/script.js || sed -i "s|'br-lan','eth1'|'br-lan','eth0','eth1'|g; s|'wwan0','wwan1'|'phy0-ap0','wwan0','wwan1'|g" /www/netmonitor/script.js
