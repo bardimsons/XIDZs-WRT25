@@ -129,6 +129,9 @@ EOF
         grep -q "scaling_governor" /etc/rc.local || sed -i '/exit 0/i for g in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do [ -w "$g" ] && echo schedutil > "$g"; done' /etc/rc.local
     fi
 
+    # Disable balethirq.pl so it does not override rc.local / packet_steering RPS/XPS
+    [ -f /usr/sbin/balethirq.pl ] && chmod -x /usr/sbin/balethirq.pl 2>/dev/null || true
+
     # Enable BBR congestion control if supported by kernel
     modprobe tcp_bbr 2>/dev/null || true
     if grep -qw bbr /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null; then
