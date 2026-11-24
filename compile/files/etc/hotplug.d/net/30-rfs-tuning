@@ -9,12 +9,10 @@ esac
 
 [ -d "/sys/class/net/$INTERFACE/queues" ] || return 0
 
-# Reduce cellular upload bufferbloat and USB MBIM TX aggregation delay on USB/WWAN modems
+# Reduce cellular upload bufferbloat on USB/WWAN modems
 case "$INTERFACE" in
     wwan*|usb*|qmimux*)
         ip link set dev "$INTERFACE" txqueuelen 150 2>/dev/null || true
-        [ -w "/sys/class/net/$INTERFACE/cdc_ncm/tx_timer_usecs" ] && echo 100 > "/sys/class/net/$INTERFACE/cdc_ncm/tx_timer_usecs" 2>/dev/null || true
-        [ -w "/sys/class/net/$INTERFACE/cdc_ncm/min_tx_pkt" ] && echo 2048 > "/sys/class/net/$INTERFACE/cdc_ncm/min_tx_pkt" 2>/dev/null || true
         ;;
 esac
 
