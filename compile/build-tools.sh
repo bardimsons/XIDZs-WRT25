@@ -678,7 +678,7 @@ run_makeimage() {
     local THEME="luci-theme-luxe luci-theme-argon luci-theme-footstrap"
     
     # Misc utilities
-    local OTHER="luci-app-ramfree ttyd luci-app-ttyd luci-app-ttl luci-app-ipinfo luci-app-eqosplus tailscale luci-app-tailscale ookla-speedtest luci-app-poweroffdevice"
+    local OTHER="luci-app-ramfree ttyd luci-app-ttyd luci-app-ttl luci-app-ipinfo luci-app-eqosplus luci-app-sqm tailscale luci-app-tailscale ookla-speedtest luci-app-poweroffdevice"
     
     # Internet connection detector
     local INTERNETD="internet-detector internet-detector-mod-modem-restart luci-app-internet-detector"

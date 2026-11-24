@@ -132,6 +132,34 @@ EOF
         sysctl -w net.ipv4.tcp_congestion_control=bbr >/dev/null 2>&1 || true
     fi
 
+    # Configure CAKE SQM on wwan0 for low-latency gaming if sqm-scripts is installed
+    if [ -f /etc/config/sqm ]; then
+        uci -q batch <<EOF
+delete sqm.eth1
+delete sqm.wwan0
+set sqm.wwan0=queue
+set sqm.wwan0.enabled='1'
+set sqm.wwan0.interface='wwan0'
+set sqm.wwan0.download='13500'
+set sqm.wwan0.upload='18000'
+set sqm.wwan0.qdisc='cake'
+set sqm.wwan0.script='layer_cake.qos'
+set sqm.wwan0.qdisc_advanced='1'
+set sqm.wwan0.squash_dscp='0'
+set sqm.wwan0.squash_ingress='0'
+set sqm.wwan0.ingress_ecn='ECN'
+set sqm.wwan0.egress_ecn='NOECN'
+set sqm.wwan0.qdisc_really_really_advanced='1'
+set sqm.wwan0.iqdisc_opts='nat dual-dsthost ingress'
+set sqm.wwan0.eqdisc_opts='nat dual-srchost ack-filter'
+set sqm.wwan0.linklayer='none'
+set sqm.wwan0.debug_logging='0'
+set sqm.wwan0.verbosity='5'
+commit sqm
+EOF
+        /etc/init.d/sqm enable 2>/dev/null || true
+    fi
+
     # WLAN
     if [ -d "/sys/class/ieee80211" ] && [ "$(ls -A /sys/class/ieee80211 2>/dev/null)" ]; then
         echo "WLAN hardware detected."
