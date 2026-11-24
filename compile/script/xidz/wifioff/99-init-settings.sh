@@ -106,19 +106,11 @@ commit firewall
 set dhcp.@dnsmasq[0].cachesize='4096'
 set dhcp.@dnsmasq[0].min_cache_ttl='60'
 set dhcp.@dnsmasq[0].filter_aaaa='1'
-set dhcp.@dnsmasq[0].noresolv='1'
-delete dhcp.@dnsmasq[0].server
-add_list dhcp.@dnsmasq[0].server='1.1.1.1'
-add_list dhcp.@dnsmasq[0].server='8.8.8.8'
 set dhcp.lan.ra='disabled'
 set dhcp.lan.dhcpv6='disabled'
 set dhcp.lan.ndp='disabled'
 commit dhcp
 EOF
-    if uci -q get network.modem >/dev/null 2>&1; then
-        uci set network.modem.peerdns='0'
-        uci commit network
-    fi
     /etc/init.d/odhcpd disable 2>/dev/null || true
     /etc/init.d/odhcpd stop 2>/dev/null || true
 
