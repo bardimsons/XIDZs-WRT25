@@ -133,6 +133,7 @@ misc_file_perms() {
     local conf_files=( 
         "files/etc/crontabs/root"
         "files/etc/hotplug.d/net/30-rfs-tuning"
+        "files/etc/hotplug.d/usb/20-modem-no-autosuspend"
         "files/etc/rc.local"
         "files/etc/sysctl.conf"
     )
