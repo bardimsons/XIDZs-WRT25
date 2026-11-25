@@ -1,9 +1,0 @@
-#!/bin/sh
-# Disable USB runtime autosuspend for cellular modems
-case "$ACTION" in
-    add|bind) ;;
-    *) return 0 ;;
-esac
-
-[ -n "$DEVPATH" ] || return 0
-[ -w "/sys${DEVPATH}/power/control" ] && echo on > "/sys${DEVPATH}/power/control" 2>/dev/null || true
